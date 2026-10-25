@@ -1,0 +1,100 @@
+---
+name: ci
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-26.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install ShellCheck
+        run: |
+          set -euo pipefail
+          gh release download v0.11.0 --repo koalaman/shellcheck --pattern 'shellcheck-v0.11.0.linux.x86_64.tar.xz' --output shellcheck.tar.xz
+          echo "8c3be12b05d5c177a04c29e3c78ce89ac86f1595681cab149b65b97c4e227198  shellcheck.tar.xz" | sha256sum -c -
+          tar -xJf shellcheck.tar.xz --strip-components=1 --wildcards '*/shellcheck'
+          sudo install -m 755 shellcheck /usr/local/bin/shellcheck
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: ShellCheck at zero findings
+        run: make lint
+
+  test:
+    name: test (${{ matrix.runner }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-26.04, macos-26]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install shells and tools (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq bats dash zsh dosfstools fdisk xz-utils zstd bzip2 \
+            libarchive-tools qemu-utils dmsetup mtools exfatprogs wimtools xorriso
+      - name: Install shells and tools (macOS)
+        if: runner.os == 'macOS'
+        run: brew install bats-core dash mtools wimlib xz zstd qemu
+      - name: Run the suites under the system sh and zsh
+        env:
+          DISK_SHELLS: ${{ runner.os == 'Linux' && 'dash|zsh' || '/bin/sh|zsh' }}
+        run: sh test/run-matrix.sh test
+
+  release:
+    name: release
+    needs: [lint, test]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: write
+    outputs:
+      tag: ${{ steps.publish.outputs.tag }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Publish the release
+        id: publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          version=$(sed -n 's/^KAKIKOMI_VERSION="\(.*\)"$/\1/p' lib/core.sh)
+          if [ "v${version}" != "${TAG}" ]; then
+            echo "tag ${TAG} does not match KAKIKOMI_VERSION ${version}" >&2
+            exit 1
+          fi
+          gh release create "${TAG}" --repo "${GITHUB_REPOSITORY}" --title "${TAG}" --generate-notes
+          echo "tag=${TAG}" >> "${GITHUB_OUTPUT}"
+
+  formula:
+    name: formula
+    needs: release
+    uses: ./.github/workflows/formula.yml
+    with:
+      tag: ${{ needs.release.outputs.tag }}
+    secrets: inherit
