@@ -20,6 +20,7 @@ disk_wipe_run() {
 }
 
 @test "kiyome output matches the recorded golden run" {
+  [[ -z "${DISK_COVERAGE:-}" ]] || skip "kcov changes process names and stderr order; the shell matrices run this test"
   # Arrange
   local name="wipe"
 
