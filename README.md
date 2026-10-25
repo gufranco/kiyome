@@ -191,8 +191,9 @@ Everything is POSIX `sh` with ShellCheck `-o all` at zero findings and no disabl
 | `make test` | The 40 `bats` tests under the system `sh` |
 | `make test-all` | The same tests under every installed shell |
 | `make test-linux` | The same tests in a privileged Ubuntu container, from a Mac |
+| `make coverage` | kcov line coverage in that container, with a 66% floor CI enforces |
 
-The tests attach file-backed disks with `hdiutil` or `losetup`, write to them for real, and inject I/O errors with `dmsetup` on Linux. CI runs them on Ubuntu and macOS. A tag `vX.Y.Z` that matches `KAKIKOMI_VERSION` in [`lib/core.sh`](lib/core.sh) publishes a release and updates the Homebrew formula.
+The tests attach file-backed disks with `hdiutil` or `losetup`, write to them for real, and inject I/O errors with `dmsetup` on Linux. CI runs them on Ubuntu and macOS. Every push to `main` runs semantic-release: a `feat` or `fix` commit publishes a release, updates `KAKIKOMI_VERSION` in [`lib/core.sh`](lib/core.sh) and the CHANGELOG, and bumps the Homebrew formula.
 
 ## License
 

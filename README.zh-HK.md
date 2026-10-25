@@ -191,8 +191,9 @@ Device ejected successfully
 | `make test` | 喺系統 `sh` 之下執行 40 個 `bats` 測試 |
 | `make test-all` | 喺每個已安裝嘅 shell 之下執行相同測試 |
 | `make test-linux` | 由 Mac 喺特權 Ubuntu 容器入面執行相同測試 |
+| `make coverage` | 喺同一個容器用 kcov 量度行覆蓋率，CI 以 66% 為下限 |
 
-測試用 `hdiutil` 或 `losetup` 掛接以檔案為後端嘅磁碟，真實寫入，並喺 Linux 上用 `dmsetup` 注入 I/O 錯誤。CI 喺 Ubuntu 同 macOS 上運行。推送同 [`lib/core.sh`](lib/core.sh) 入面 `KAKIKOMI_VERSION` 一致嘅 `vX.Y.Z` 標籤，就會發佈 release 並更新 Homebrew formula。
+測試用 `hdiutil` 或 `losetup` 掛接以檔案為後端嘅磁碟，真實寫入，並喺 Linux 上用 `dmsetup` 注入 I/O 錯誤。CI 喺 Ubuntu 同 macOS 上運行。每次推送到 `main` 都會執行 semantic-release：有 `feat` 或 `fix` commit 時就會發佈 release，更新 [`lib/core.sh`](lib/core.sh) 入面嘅 `KAKIKOMI_VERSION` 同 CHANGELOG，並更新 Homebrew formula。
 
 ## 授權
 

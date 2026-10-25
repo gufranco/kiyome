@@ -4,7 +4,6 @@ name: ci
 on:
   push:
     branches: [main]
-    tags: ['v*']
   pull_request:
   workflow_dispatch:
 
@@ -27,7 +26,8 @@ jobs:
       - name: Install ShellCheck
         run: |
           set -euo pipefail
-          gh release download v0.11.0 --repo koalaman/shellcheck --pattern 'shellcheck-v0.11.0.linux.x86_64.tar.xz' --output shellcheck.tar.xz
+          gh release download v0.11.0 --repo koalaman/shellcheck \
+            --pattern 'shellcheck-v0.11.0.linux.x86_64.tar.xz' --output shellcheck.tar.xz
           echo "8c3be12b05d5c177a04c29e3c78ce89ac86f1595681cab149b65b97c4e227198  shellcheck.tar.xz" | sha256sum -c -
           tar -xJf shellcheck.tar.xz --strip-components=1 --wildcards '*/shellcheck'
           sudo install -m 755 shellcheck /usr/local/bin/shellcheck
@@ -35,6 +35,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
       - name: ShellCheck at zero findings
         run: make lint
+      - name: yamllint
+        run: pipx run yamllint==1.37.1 -s -c .yamllint.yml .github .yamllint.yml
 
   test:
     name: test (${{ matrix.runner }})
@@ -63,37 +65,60 @@ jobs:
           DISK_SHELLS: ${{ runner.os == 'Linux' && 'dash|zsh' || '/bin/sh|zsh' }}
         run: sh test/run-matrix.sh test
 
-  release:
-    name: release
-    needs: [lint, test]
-    if: startsWith(github.ref, 'refs/tags/v')
+  coverage:
+    name: coverage gate
     runs-on: ubuntu-26.04
-    permissions:
-      contents: write
-    outputs:
-      tag: ${{ steps.publish.outputs.tag }}
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           persist-credentials: false
-      - name: Publish the release
-        id: publish
-        env:
-          GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.ref_name }}
+      - name: Install kcov and the test tools
         run: |
           set -euo pipefail
-          version=$(sed -n 's/^KAKIKOMI_VERSION="\(.*\)"$/\1/p' lib/core.sh)
-          if [ "v${version}" != "${TAG}" ]; then
-            echo "tag ${TAG} does not match KAKIKOMI_VERSION ${version}" >&2
-            exit 1
-          fi
-          gh release create "${TAG}" --repo "${GITHUB_REPOSITORY}" --title "${TAG}" --generate-notes
-          echo "tag=${TAG}" >> "${GITHUB_OUTPUT}"
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq bats kcov dosfstools fdisk xz-utils zstd bzip2 \
+            libarchive-tools qemu-utils dmsetup mtools exfatprogs wimtools xorriso
+      - name: Enforce the coverage floor
+        run: sh scripts/coverage.sh 66
+
+  release:
+    name: release
+    needs: [lint, test, coverage]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-26.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    outputs:
+      tag: ${{ steps.published.outputs.tag }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
+        with:
+          node-version: lts/*
+      - name: Install release tooling
+        run: |
+          set -euo pipefail
+          corepack enable
+          pnpm install --frozen-lockfile
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: pnpm exec semantic-release
+      - name: Record the tag a release just published
+        id: published
+        run: echo "tag=$(git tag --points-at HEAD | head -n 1)" >> "${GITHUB_OUTPUT}"
 
   formula:
     name: formula
     needs: release
+    if: needs.release.outputs.tag != ''
     uses: ./.github/workflows/formula.yml
     with:
       tag: ${{ needs.release.outputs.tag }}

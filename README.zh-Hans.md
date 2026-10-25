@@ -191,8 +191,9 @@ Device ejected successfully
 | `make test` | 在系统 `sh` 下运行 40 个 `bats` 测试 |
 | `make test-all` | 在每个已安装的 shell 下运行同样的测试 |
 | `make test-linux` | 从 Mac 在特权 Ubuntu 容器中运行同样的测试 |
+| `make coverage` | 在同一容器中用 kcov 测量行覆盖率，CI 以 66% 为下限 |
 
-测试用 `hdiutil` 或 `losetup` 挂接以文件为后端的磁盘，真实写入，并在 Linux 上用 `dmsetup` 注入 I/O 错误。CI 在 Ubuntu 和 macOS 上运行。推送与 [`lib/core.sh`](lib/core.sh) 中 `KAKIKOMI_VERSION` 一致的 `vX.Y.Z` 标签，会发布 release 并更新 Homebrew formula。
+测试用 `hdiutil` 或 `losetup` 挂接以文件为后端的磁盘，真实写入，并在 Linux 上用 `dmsetup` 注入 I/O 错误。CI 在 Ubuntu 和 macOS 上运行。每次推送到 `main` 都会运行 semantic-release：含 `feat` 或 `fix` 提交时会发布 release，更新 [`lib/core.sh`](lib/core.sh) 中的 `KAKIKOMI_VERSION` 和 CHANGELOG，并更新 Homebrew formula。
 
 ## 许可证
 

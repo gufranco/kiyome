@@ -191,8 +191,9 @@ Device ejected successfully
 | `make test` | システムの`sh`で40件の`bats`テスト |
 | `make test-all` | インストール済みのすべてのシェルで同じテスト |
 | `make test-linux` | Macから、特権付きUbuntuコンテナで同じテスト |
+| `make coverage` | 同じコンテナでkcovによる行カバレッジを測定。CIは66%を下限にします |
 
-テストは`hdiutil`や`losetup`でファイルを使ったディスクを接続して実際に書き込み、Linuxでは`dmsetup`でI/Oエラーを注入します。CIはUbuntuとmacOSで実行します。[`lib/core.sh`](lib/core.sh)の`KAKIKOMI_VERSION`と一致する`vX.Y.Z`のタグを付けると、リリースが公開され、Homebrewのformulaが更新されます。
+テストは`hdiutil`や`losetup`でファイルを使ったディスクを接続して実際に書き込み、Linuxでは`dmsetup`でI/Oエラーを注入します。CIはUbuntuとmacOSで実行します。`main`へのpushごとにsemantic-releaseが動き、`feat`か`fix`のコミットがあればリリースを公開し、[`lib/core.sh`](lib/core.sh)の`KAKIKOMI_VERSION`とCHANGELOGを更新して、Homebrewのformulaも更新します。
 
 ## ライセンス
 
