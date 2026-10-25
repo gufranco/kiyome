@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-# shellcheck source=tests/disk/helpers.bash
+# shellcheck source=test/helpers.bash
 source "${BATS_TEST_DIRNAME:-.}/helpers.bash"
 
 setup() {

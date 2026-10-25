@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
 DISK_TESTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DOTFILES_DIR="$(cd "${DISK_TESTS_DIR}/../.." && pwd)"
+REPO_DIR="$(cd "${DISK_TESTS_DIR}/.." && pwd)"
 DISK_TEST_OS="$(uname -s)"
-export DISK_TESTS_DIR DOTFILES_DIR DISK_TEST_OS
+export DISK_TESTS_DIR REPO_DIR DISK_TEST_OS
 
 disk_test_path() {
   if [[ "${DISK_TEST_OS}" == "Darwin" ]]; then
@@ -26,7 +26,7 @@ disk_test_run_env() {
   search_path="$(disk_test_path)"
   read -r -a shell_words <<<"${DISK_SHELL:-sh}"
   read -r -a env_words <<<"${settings}"
-  PATH="${search_path}" env "${env_words[@]}" "${shell_words[@]}" "${DOTFILES_DIR}/bin/${program}" "$@"
+  PATH="${search_path}" env "${env_words[@]}" "${shell_words[@]}" "${REPO_DIR}/bin/${program}" "$@"
 }
 
 disk_test_call() {

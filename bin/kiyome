@@ -6,17 +6,17 @@ case "${disk_self}" in
   */*) ;;
   *) disk_self="$(command -v -- "${disk_self}")" ;;
 esac
-DISK_LIB="$(cd "${disk_self%/*}/../lib/disk" && pwd)" || exit 1
+DISK_LIB="$(cd "${disk_self%/*}/../lib" && pwd)" || exit 1
 
-# shellcheck source=SCRIPTDIR/../lib/disk/core.sh
+# shellcheck source=SCRIPTDIR/../lib/core.sh
 . "${DISK_LIB}/core.sh"
-# shellcheck source=SCRIPTDIR/../lib/disk/io.sh
+# shellcheck source=SCRIPTDIR/../lib/io.sh
 . "${DISK_LIB}/io.sh"
-# shellcheck source=SCRIPTDIR/../lib/disk/calibrate.sh
+# shellcheck source=SCRIPTDIR/../lib/calibrate.sh
 . "${DISK_LIB}/calibrate.sh"
-# shellcheck source=SCRIPTDIR/../lib/disk/wipe.sh
+# shellcheck source=SCRIPTDIR/../lib/wipe.sh
 . "${DISK_LIB}/wipe.sh"
-# shellcheck source=SCRIPTDIR/../lib/disk/boot.sh
+# shellcheck source=SCRIPTDIR/../lib/boot.sh
 . "${DISK_LIB}/boot.sh"
 
 disk_wipe_usage() {
@@ -160,6 +160,17 @@ disk_wipe_prepare() {
 }
 
 disk_wipe_main() {
+  case "${1:-}" in
+    -V | --version)
+      disk_version kiyome
+      return 0
+      ;;
+    -h | --help)
+      disk_wipe_usage
+      return 0
+      ;;
+    *) ;;
+  esac
   if [ "$#" -eq 0 ] || [ -z "$1" ]; then
     disk_error "No device specified"
     disk_wipe_usage

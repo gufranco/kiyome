@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-repo="$(cd "$(dirname "$0")/../.." && pwd)"
+repo="$(cd "$(dirname "$0")/.." && pwd)"
 image="${DISK_TEST_IMAGE:-ubuntu:26.04}"
 
 docker run --rm --privileged \

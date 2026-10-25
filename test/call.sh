@@ -1,25 +1,25 @@
 #!/bin/sh
 [ -n "${ZSH_VERSION:-}" ] && emulate sh
 
-DISK_LIB="$(cd "$(dirname "$0")/../../lib/disk" && pwd)" || exit 1
+DISK_LIB="$(cd "$(dirname "$0")/../lib" && pwd)" || exit 1
 
-# shellcheck source=SCRIPTDIR/../../lib/disk/core.sh
+# shellcheck source=SCRIPTDIR/../lib/core.sh
 . "${DISK_LIB}/core.sh"
-# shellcheck source=SCRIPTDIR/../../lib/disk/io.sh
+# shellcheck source=SCRIPTDIR/../lib/io.sh
 . "${DISK_LIB}/io.sh"
-# shellcheck source=SCRIPTDIR/../../lib/disk/calibrate.sh
+# shellcheck source=SCRIPTDIR/../lib/calibrate.sh
 . "${DISK_LIB}/calibrate.sh"
-# shellcheck source=SCRIPTDIR/../../lib/disk/wipe.sh
+# shellcheck source=SCRIPTDIR/../lib/wipe.sh
 . "${DISK_LIB}/wipe.sh"
-# shellcheck source=SCRIPTDIR/../../lib/disk/source.sh
+# shellcheck source=SCRIPTDIR/../lib/source.sh
 . "${DISK_LIB}/source.sh"
-# shellcheck source=SCRIPTDIR/../../lib/disk/guard.sh
+# shellcheck source=SCRIPTDIR/../lib/guard.sh
 . "${DISK_LIB}/guard.sh"
-# shellcheck source=SCRIPTDIR/../../lib/disk/ui.sh
+# shellcheck source=SCRIPTDIR/../lib/ui.sh
 . "${DISK_LIB}/ui.sh"
-# shellcheck source=SCRIPTDIR/../../lib/disk/write.sh
+# shellcheck source=SCRIPTDIR/../lib/write.sh
 . "${DISK_LIB}/write.sh"
-# shellcheck source=SCRIPTDIR/../../lib/disk/after.sh
+# shellcheck source=SCRIPTDIR/../lib/after.sh
 . "${DISK_LIB}/after.sh"
 
 call_breach() {
