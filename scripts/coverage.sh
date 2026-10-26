@@ -4,6 +4,11 @@ set -eu
 root=$(cd "$(dirname "$0")/.." && pwd)
 minimum=${1:-100}
 bash_bin=$(command -v bash)
+# shellcheck disable=SC2016
+if ! "${bash_bin}" -c '[ "${BASH_VERSINFO[0]}" -ge 4 ]' 2>/dev/null; then
+  printf 'coverage: bashcov needs bash 4 or later, and %s is older. Install a newer bash first.\n' "${bash_bin}" >&2
+  exit 1
+fi
 ruby_bin=$(command -v ruby)
 bashcov_bin="${root}/scripts/bashcov-run.rb"
 hashbang=$(printf '\043\041')
