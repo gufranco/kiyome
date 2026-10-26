@@ -379,6 +379,10 @@ disk_watch() {
   disk_wt_elapsed="$6"
   disk_wt_ceiling=$((${STALL_SECONDS:-0} * 1000))
   DISK_REASON=""
+  if [ -n "${DISK_STOP_FILE:-}" ] && [ -f "${DISK_STOP_FILE}" ]; then
+    return 0
+  fi
+  disk_is_uint "${disk_wt_elapsed}" || disk_wt_elapsed=0
   disk_wt_took="$(disk_duration "${disk_wt_elapsed}")"
 
   if [ "${disk_wt_ceiling}" -gt 0 ] && [ "${disk_wt_elapsed}" -gt "${disk_wt_ceiling}" ]; then
@@ -390,6 +394,7 @@ disk_watch() {
   [ "${disk_wt_bytes}" -le 0 ] && return 0
 
   disk_wt_expected="$(disk_expected_ms "${disk_wt_kind}" "${disk_wt_bytes}")"
+  disk_is_uint "${disk_wt_expected}" || disk_wt_expected=1
   [ "${disk_wt_expected}" -lt 1 ] && disk_wt_expected=1
   if [ "${disk_wt_kind}" = "write" ]; then
     disk_wt_factor="${DISK_FACTOR_WRITE}"
@@ -400,6 +405,7 @@ disk_watch() {
   fi
   [ "${disk_wt_drift}" -lt 100 ] && disk_wt_drift=100
   disk_wt_budget="$(disk_budget_ms "${disk_wt_kind}" "${disk_wt_bytes}")"
+  disk_is_uint "${disk_wt_budget}" || disk_wt_budget=0
   if [ "${disk_wt_budget}" -gt 0 ] && [ "${disk_wt_elapsed}" -gt "${disk_wt_budget}" ]; then
     disk_wt_shown="$(disk_duration "${disk_wt_budget}")"
     DISK_REASON="${disk_wt_label} ${disk_wt_where} took ${disk_wt_took} against ${disk_wt_shown} allowed by what this disk measured"
