@@ -171,7 +171,12 @@ disk_test_detach() {
 
   case "${DISK_TEST_OS}" in
   Darwin) hdiutil detach "${device}" >/dev/null 2>&1 || true ;;
-  Linux) sudo losetup -d "${device}" >/dev/null 2>&1 || true ;;
+  Linux)
+    sudo losetup -d "${device}" >/dev/null 2>&1 || true
+    if [[ "${device}" == /dev/loop* ]]; then
+      sudo rm -f "${device}"p[0-9]*
+    fi
+    ;;
   *) return 1 ;;
   esac
 }
