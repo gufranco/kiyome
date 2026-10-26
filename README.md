@@ -85,6 +85,9 @@ kakikomi 1.0.0
 | `kakikomi format <target> [fat32\|exfat\|fat\|floppy] [LABEL]` | Quick format: write only the new filesystem's structures |
 | `kakikomi --release` | Remove the mount guards a run left behind |
 | `kiyome <target>` | Overwrite a disk with five verified patterns |
+| `kakikomi` or `kiyome` with no arguments | Ask for each value in turn when run in a terminal |
+| `kakikomi doctor`, `kiyome doctor` | List the tools each one needs and whether they are installed |
+| `kakikomi version`, `kakikomi help` | Print the version or the full usage page; kiyome takes the same |
 
 | Source | How it is read |
 |:-------|:---------------|
@@ -191,7 +194,7 @@ Everything is POSIX `sh` with ShellCheck `-o all` at zero findings and no disabl
 | `make test` | The 40 `bats` tests under the system `sh` |
 | `make test-all` | The same tests under every installed shell |
 | `make test-linux` | The same tests in a privileged Ubuntu container, from a Mac |
-| `make coverage` | kcov line coverage in that container, with a 66% floor CI enforces |
+| `make coverage` | bashcov line coverage on this Mac and in that container, merged, with a 100% gate CI enforces |
 
 The tests attach file-backed disks with `hdiutil` or `losetup`, write to them for real, and inject I/O errors with `dmsetup` on Linux. CI runs them on Ubuntu and macOS. Every push to `main` runs semantic-release: a `feat` or `fix` commit publishes a release, updates `KAKIKOMI_VERSION` in [`lib/core.sh`](lib/core.sh) and the CHANGELOG, and bumps the Homebrew formula.
 

@@ -85,6 +85,9 @@ kakikomi 1.0.0
 | `kakikomi format <target> [fat32\|exfat\|fat\|floppy] [LABEL]` | クイックフォーマット。新しいファイルシステムの構造だけを書き込みます |
 | `kakikomi --release` | 実行時に残ったマウント防止の設定を取り除きます |
 | `kiyome <target>` | 検証付きの5つのパターンでディスクを上書きします |
+| 引数なしの`kakikomi`または`kiyome` | ターミナルで実行すると、必要な値を順に尋ねます |
+| `kakikomi doctor`、`kiyome doctor` | それぞれが必要とするツールと、インストール状況を一覧表示します |
+| `kakikomi version`、`kakikomi help` | バージョンまたは使い方の全文を表示します。kiyomeも同じです |
 
 | 入力 | 読み方 |
 |:-------|:---------------|
@@ -191,7 +194,7 @@ Device ejected successfully
 | `make test` | システムの`sh`で40件の`bats`テスト |
 | `make test-all` | インストール済みのすべてのシェルで同じテスト |
 | `make test-linux` | Macから、特権付きUbuntuコンテナで同じテスト |
-| `make coverage` | 同じコンテナでkcovによる行カバレッジを測定。CIは66%を下限にします |
+| `make coverage` | このMacと同じコンテナでbashcovによる行カバレッジを測定して統合します。CIは100%を必須にします |
 
 テストは`hdiutil`や`losetup`でファイルを使ったディスクを接続して実際に書き込み、Linuxでは`dmsetup`でI/Oエラーを注入します。CIはUbuntuとmacOSで実行します。`main`へのpushごとにsemantic-releaseが動き、`feat`か`fix`のコミットがあればリリースを公開し、[`lib/core.sh`](lib/core.sh)の`KAKIKOMI_VERSION`とCHANGELOGを更新して、Homebrewのformulaも更新します。
 

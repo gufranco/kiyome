@@ -10,29 +10,27 @@ disk_version() {
 }
 
 disk_log() {
-  disk_log_prefix="$1"
-  shift
   if [ -n "${DISK_LOG_TAG}" ]; then
-    printf '%b %s: %s\n' "${disk_log_prefix}" "${DISK_LOG_TAG}" "$*"
+    printf '%s%s: %s\n' "$1" "${DISK_LOG_TAG}" "$2"
   else
-    printf '%b %s\n' "${disk_log_prefix}" "$*"
+    printf '%s%s\n' "$1" "$2"
   fi
 }
 
 disk_info() {
-  disk_log '\033[0;34m[INFO]\033[0m' "$@"
+  disk_log "" "$*"
 }
 
 disk_success() {
-  disk_log '\033[0;32m[\0342\0234\0223]\033[0m' "$@"
+  disk_log "" "$*"
 }
 
 disk_warning() {
-  disk_log '\033[0;33m[!]\033[0m' "$@" >&2
+  disk_log "${DISK_PROG}: warning: " "$*" >&2
 }
 
 disk_error() {
-  disk_log '\033[0;31m[\0342\0234\0227]\033[0m' "$@" >&2
+  disk_log "${DISK_PROG}: " "$*" >&2
 }
 
 disk_log_lines() {

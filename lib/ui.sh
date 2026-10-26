@@ -154,7 +154,7 @@ disk_pick_targets() {
     disk_pt_id="$(disk_identity "${disk_pt_disk}")"
     printf '  %d) %-14s %10s  %s\n' "${disk_pt_index}" "${disk_pt_disk}" "${disk_pt_human}" "${disk_pt_id}" >&2
   done
-  printf 'Write to which disk(s)? Numbers or names, separated by commas: ' >&2
+  printf '%s' "${DISK_PICK_PROMPT:-Write to which disk(s)? Numbers or names, separated by commas: }" >&2
   disk_pt_answer=""
   IFS= read -r disk_pt_answer
   disk_pt_answer="$(printf '%s' "${disk_pt_answer}" | tr -s ', ' '\n')"

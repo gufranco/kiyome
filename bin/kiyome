@@ -8,8 +8,13 @@ case "${disk_self}" in
 esac
 DISK_LIB="$(cd "${disk_self%/*}/../lib" && pwd)" || exit 1
 
+DISK_PROG=kiyome
 # shellcheck source=SCRIPTDIR/../lib/core.sh
 . "${DISK_LIB}/core.sh"
+# shellcheck source=SCRIPTDIR/../lib/cli.sh
+. "${DISK_LIB}/cli.sh"
+# shellcheck source=SCRIPTDIR/../lib/ui.sh
+. "${DISK_LIB}/ui.sh"
 # shellcheck source=SCRIPTDIR/../lib/io.sh
 . "${DISK_LIB}/io.sh"
 # shellcheck source=SCRIPTDIR/../lib/calibrate.sh
@@ -20,13 +25,40 @@ DISK_LIB="$(cd "${disk_self%/*}/../lib" && pwd)" || exit 1
 . "${DISK_LIB}/boot.sh"
 
 disk_wipe_usage() {
-  disk_info "Usage: kiyome <device|mount_point>"
-  disk_info "       kiyome /dev/disk4       (macOS, whole disk)"
-  disk_info "       kiyome /dev/sdb         (Linux, whole disk)"
-  disk_info "       kiyome /Volumes/USB     (macOS, mount point)"
-  disk_info "       kiyome /mnt/usb         (Linux, mount point)"
-  disk_info "       PASSES=N kiyome <device|mount_point>"
-  disk_info "       CREATE=y kiyome <device|mount_point>"
+  cat <<'USAGE'
+kiyome - overwrite a disk with five verified patterns, reporting any bad bit line
+
+usage:
+  kiyome                         ask for the disk and the number of passes
+  kiyome <device|mount_point>    wipe that disk
+  kiyome doctor
+  kiyome version
+  kiyome help
+
+environment:
+  PASSES=N    repeat the five patterns N times. 1 by default
+  CREATE=y    leave a fresh FAT or exFAT filesystem behind
+
+notes:
+  Each pass writes per-chunk unique AES-CTR data, then 0xAA, 0x55, 0xFF and
+  0x00, and reads every one back. A wrong byte is reported with the bit lines
+  involved, which tells a stuck data line apart from worn media.
+
+examples:
+  kiyome /dev/disk4
+  kiyome /Volumes/USB
+  PASSES=3 kiyome /dev/sdb
+  CREATE=y kiyome /dev/disk4
+USAGE
+}
+
+disk_wipe_ask() {
+  disk_wk_disk="$(disk_pick_single "Wipe which disk? Number or name: ")" || return 1
+  if [ -z "${PASSES:-}" ]; then
+    PASSES="$(disk_prompt "Passes" 1)" || return 1
+    export PASSES
+  fi
+  disk_wipe_run "${disk_wk_disk}"
 }
 
 disk_wipe_validate() {
@@ -161,21 +193,26 @@ disk_wipe_prepare() {
 
 disk_wipe_main() {
   case "${1:-}" in
-    -V | --version)
-      disk_version kiyome
-      return 0
+    help | -h | --help) disk_wipe_usage ;;
+    version | -V | --version) disk_cli_version ;;
+    doctor) disk_doctor ;;
+    '')
+      if disk_cli_interactive; then
+        disk_wipe_ask
+        return "$?"
+      fi
+      disk_cli_hint "no disk given"
+      return 1
       ;;
-    -h | --help)
-      disk_wipe_usage
-      return 0
+    -*)
+      disk_cli_hint "unknown option '$1'"
+      return 1
       ;;
-    *) ;;
+    *) disk_wipe_run "$@" ;;
   esac
-  if [ "$#" -eq 0 ] || [ -z "$1" ]; then
-    disk_error "No device specified"
-    disk_wipe_usage
-    return 1
-  fi
+}
+
+disk_wipe_run() {
   disk_wm_disk="$(disk_resolve "$1")" || return 1
   disk_info "Device: ${disk_wm_disk}"
   DISK_ERRFILE=""
