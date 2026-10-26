@@ -6,6 +6,9 @@ source "${BATS_TEST_DIRNAME:-.}/helpers.bash"
 setup() {
   WORK="$(mktemp -d "${BATS_TMPDIR:-/tmp}/disk-wipe.XXXXXX")"
   export SLOW_FACTOR=50
+  if [[ "${DISK_TEST_OS}" == "Linux" ]]; then
+    export ALLOW_INTERNAL=y
+  fi
   IMAGE="${WORK}/target.img"
   disk_test_image "${IMAGE}" 4
   DEVICE="$(disk_test_attach "${IMAGE}")"

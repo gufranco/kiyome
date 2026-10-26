@@ -36,8 +36,9 @@ usage:
   kiyome help
 
 environment:
-  PASSES=N    repeat the five patterns N times. 1 by default
-  CREATE=y    leave a fresh FAT or exFAT filesystem behind
+  PASSES=N          repeat the five patterns N times. 1 by default
+  CREATE=y          leave a fresh FAT or exFAT filesystem behind
+  ALLOW_INTERNAL=y  allow an internal disk. the system disk is always refused
 
 notes:
   Each pass writes per-chunk unique AES-CTR data, then 0xAA, 0x55, 0xFF and
@@ -214,6 +215,7 @@ disk_wipe_main() {
 
 disk_wipe_run() {
   disk_wm_disk="$(disk_resolve "$1")" || return 1
+  disk_refuse_target "${disk_wm_disk}" || return 1
   disk_info "Device: ${disk_wm_disk}"
   DISK_ERRFILE=""
   DISK_LAST_ERROR=""
