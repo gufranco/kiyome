@@ -23,9 +23,8 @@ disk_doctor_tool() {
     disk_doctor_row "$1" ok "${disk_dt_found}"
     return 0
   fi
-  disk_doctor_row "$1" missing "$3"
-  [ "$2" = required ] && return 1
-  return 0
+  disk_doctor_row "$1" missing "$2"
+  return 1
 }
 
 disk_doctor_either() {
@@ -34,22 +33,21 @@ disk_doctor_either() {
     disk_doctor_row "$1|$2" ok "${disk_de_found}"
     return 0
   fi
-  disk_doctor_row "$1|$2" missing "$4"
-  [ "$3" = required ] && return 1
-  return 0
+  disk_doctor_row "$1|$2" missing "$3"
+  return 1
 }
 
 disk_doctor_platform() {
   disk_dp_status=0
   case "$(uname -s)" in
   Darwin)
-    disk_doctor_tool diskutil required "lists and ejects disks" || disk_dp_status=1
-    disk_doctor_tool hdiutil required "reads volume UUIDs without mounting" || disk_dp_status=1
+    disk_doctor_tool diskutil "lists and ejects disks" || disk_dp_status=1
+    disk_doctor_tool hdiutil "reads volume UUIDs without mounting" || disk_dp_status=1
     ;;
   *)
-    disk_doctor_tool lsblk required "lists disks" || disk_dp_status=1
-    disk_doctor_tool blockdev required "reads disk sizes" || disk_dp_status=1
-    disk_doctor_tool udevadm required "keeps udisks from mounting the target" || disk_dp_status=1
+    disk_doctor_tool lsblk "lists disks" || disk_dp_status=1
+    disk_doctor_tool blockdev "reads disk sizes" || disk_dp_status=1
+    disk_doctor_tool udevadm "keeps udisks from mounting the target" || disk_dp_status=1
     ;;
   esac
   return "${disk_dp_status}"
@@ -58,9 +56,9 @@ disk_doctor_platform() {
 disk_doctor_core() {
   disk_dc_status=0
   for disk_dc_tool in dd cmp od awk sed sudo; do
-    disk_doctor_tool "${disk_dc_tool}" required "required" || disk_dc_status=1
+    disk_doctor_tool "${disk_dc_tool}" "required" || disk_dc_status=1
   done
-  disk_doctor_either sha256sum shasum required "validates the written disk" || disk_dc_status=1
+  disk_doctor_either sha256sum shasum "validates the written disk" || disk_dc_status=1
   disk_doctor_platform || disk_dc_status=1
   return "${disk_dc_status}"
 }
@@ -68,7 +66,7 @@ disk_doctor_core() {
 disk_doctor() {
   disk_dr_status=0
   disk_doctor_core || disk_dr_status=1
-  disk_doctor_tool openssl required "builds the per-chunk unique pattern" || disk_dr_status=1
+  disk_doctor_tool openssl "builds the per-chunk unique pattern" || disk_dr_status=1
   return "${disk_dr_status}"
 }
 
