@@ -191,11 +191,7 @@ exec \"\$REAL\" \"\$@\""
     disk_test_partition_nodes_start
     MOUNT_POINT="${WORK}/mnt"
     mkdir -p "${MOUNT_POINT}"
-    local tries=0
-    until [[ -b "${DEVICE}p1" || "${tries}" -ge 200 ]]; do
-      sleep 0.1
-      tries=$((tries + 1))
-    done
+    disk_test_wait_partition "${DEVICE}p1"
     sudo mount "${DEVICE}p1" "${MOUNT_POINT}"
     MOUNTED="${MOUNT_POINT}"
     ;;
@@ -235,11 +231,7 @@ exec \"\$REAL\" \"\$@\""
   DEVICE="$(disk_test_attach_partitioned "${WORK}/fat.img")"
   disk_test_partition_nodes_start
   mkdir -p "${WORK}/mnt"
-  local tries=0
-  until [[ -b "${DEVICE}p1" || "${tries}" -ge 200 ]]; do
-    sleep 0.1
-    tries=$((tries + 1))
-  done
+  disk_test_wait_partition "${DEVICE}p1"
   sudo mount "${DEVICE}p1" "${WORK}/mnt"
   MOUNTED="${WORK}/mnt"
 
@@ -292,11 +284,7 @@ exec \"\$REAL\" \"\$@\""
   Darwin) partition="${DEVICE}s1" ;;
   *) partition="${DEVICE}p1" ;;
   esac
-  local tries=0
-  until [[ -b "${partition}" || "${tries}" -ge 200 ]]; do
-    sleep 0.1
-    tries=$((tries + 1))
-  done
+  disk_test_wait_partition "${partition}"
 
   # Act
   run declining "${partition}"

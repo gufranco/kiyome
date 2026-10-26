@@ -148,6 +148,7 @@ exec \"\$REAL\" \"\$@\""
   disk_test_detach "${DEVICE}"
   DEVICE="$(disk_test_attach "${IMAGE}")"
   sudo rm -f "${DEVICE}p1"
+  disk_test_shim sfdisk "exit 0"
 
   # Act
   run disk_test_call disk_create_partition "${DEVICE}" 1073741824

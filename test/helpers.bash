@@ -132,8 +132,22 @@ disk_test_attach() {
 
 disk_test_attach_partitioned() {
   local image="$1"
+  local device tries=0
   case "${DISK_TEST_OS}" in
-  Linux) sudo losetup -f -P --show "${image}" ;;
+  Linux)
+    device="$(sudo losetup -f -P --show "${image}")" || return 1
+    if [[ -S /run/udev/control ]]; then
+      sudo udevadm settle >/dev/null 2>&1 || true
+    fi
+    until compgen -G "/sys/block/${device##*/}/${device##*/}p*" >/dev/null || [[ "${tries}" -ge 20 ]]; do
+      sleep 0.1
+      tries=$((tries + 1))
+    done
+    if ! compgen -G "/sys/block/${device##*/}/${device##*/}p*" >/dev/null; then
+      sudo partx -a "${device}" >/dev/null 2>&1 || true
+    fi
+    printf '%s\n' "${device}"
+    ;;
   *) disk_test_attach "${image}" ;;
   esac
 }
@@ -159,6 +173,20 @@ disk_test_partition_nodes_start() {
   PARTITION_NODES_PID="$!"
 }
 
+disk_test_wait_partition() {
+  local node="$1"
+  local tries=0
+  while [[ "${tries}" -lt 200 ]]; do
+    if [[ -S /run/udev/control ]]; then
+      sudo udevadm settle >/dev/null 2>&1 || true
+    fi
+    [[ -b "${node}" ]] && return 0
+    sleep 0.1
+    tries=$((tries + 1))
+  done
+  return 1
+}
+
 disk_test_partition_nodes_stop() {
   [[ -n "${PARTITION_NODES_PID:-}" ]] || return 0
   kill "${PARTITION_NODES_PID}" 2>/dev/null || true
@@ -173,7 +201,7 @@ disk_test_detach() {
   Darwin) hdiutil detach "${device}" >/dev/null 2>&1 || true ;;
   Linux)
     sudo losetup -d "${device}" >/dev/null 2>&1 || true
-    if [[ "${device}" == /dev/loop* ]]; then
+    if [[ ! -S /run/udev/control && "${device}" == /dev/loop* ]]; then
       sudo rm -f "${device}"p[0-9]*
     fi
     ;;
