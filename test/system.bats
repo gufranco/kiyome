@@ -1,0 +1,332 @@
+#!/usr/bin/env bats
+# shellcheck disable=SC2030,SC2031
+
+# shellcheck source=test/helpers.bash
+source "${BATS_TEST_DIRNAME:-.}/helpers.bash"
+# shellcheck source=test/fakes.bash
+source "${BATS_TEST_DIRNAME:-.}/fakes.bash"
+
+setup() {
+  WORK="$(mktemp -d "${BATS_TMPDIR:-/tmp}/disk-system.XXXXXX")"
+  export SLOW_FACTOR=50
+  if [[ "${DISK_TEST_OS}" == "Linux" ]]; then
+    export ALLOW_INTERNAL=y
+  fi
+  SHIMS="${WORK}/shims"
+  export SHIMS
+  DEVICE=""
+  MOUNTED=""
+}
+
+teardown() {
+  disk_test_partition_nodes_stop
+  if [[ -n "${MOUNTED}" ]]; then
+    case "${DISK_TEST_OS}" in
+    Darwin) hdiutil detach -force "${MOUNTED}" >/dev/null 2>&1 || true ;;
+    *) sudo umount "${MOUNTED}" >/dev/null 2>&1 || true ;;
+    esac
+  fi
+  [[ -z "${DEVICE}" ]] || disk_test_detach "${DEVICE}"
+  rm -rf "${WORK}"
+}
+
+attach_blank() {
+  disk_test_fill "${WORK}/target.img" 2 '\252'
+  DEVICE="$(disk_test_attach "${WORK}/target.img")"
+}
+
+wiping() {
+  printf 'y\n' | disk_test_run kiyome "${DEVICE}"
+}
+
+declining() {
+  printf 'n\n' | disk_test_run kiyome "$1"
+}
+
+real_timeout() {
+  command -v timeout || command -v gtimeout
+}
+
+@test "a bounded command past its limit is stopped without timeout" {
+  # Arrange
+  local farm
+  farm="$(disk_test_farm timeout gtimeout)"
+
+  # Act
+  run disk_test_call_path "${farm}" disk_bounded 1 sleep 5
+
+  # Assert
+  [[ "${status}" -eq 124 ]]
+}
+
+@test "a bounded command within its limit keeps its status without timeout" {
+  # Arrange
+  local farm
+  farm="$(disk_test_farm timeout gtimeout)"
+
+  # Act
+  run disk_test_call_path "${farm}" disk_bounded 3 true
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+}
+
+@test "a bounded command uses gtimeout when timeout is missing" {
+  # Arrange
+  local runner
+  runner="$(real_timeout)"
+  disk_test_shim gtimeout "exec '${runner}' \"\$@\""
+  local farm
+  farm="$(disk_test_farm timeout)"
+
+  # Act
+  run disk_test_call_path "${farm}" disk_bounded 3 true
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+}
+
+@test "a millisecond bound uses gtimeout when timeout is missing" {
+  # Arrange
+  local runner
+  runner="$(real_timeout)"
+  disk_test_shim gtimeout "exec '${runner}' \"\$@\""
+  local farm
+  farm="$(disk_test_farm timeout)"
+
+  # Act
+  run disk_test_call_path "${farm}" disk_bounded_ms 1500 true
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+}
+
+@test "a millisecond bound falls back to whole seconds without timeout" {
+  # Arrange
+  local farm
+  farm="$(disk_test_farm timeout gtimeout)"
+
+  # Act
+  run disk_test_call_path "${farm}" disk_bounded_ms 1500 true
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+}
+
+@test "the clock still reads without perl" {
+  # Arrange
+  disk_test_shim perl "exit 1"
+
+  # Act
+  run disk_test_call disk_now_ms
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" =~ ^[0-9]+$ ]]
+}
+
+@test "the clock falls back to whole seconds when date has no nanoseconds" {
+  # Arrange
+  [[ "${DISK_TEST_OS}" == "Darwin" ]] || skip "Linux reads /proc/uptime before date"
+  disk_test_shim perl "exit 1"
+  disk_test_shim date "case \"\$1\" in +%s%N) printf '%sN\\n' \"\$(\"\$REAL\" +%s)\"; exit 0 ;; esac
+exec \"\$REAL\" \"\$@\""
+
+  # Act
+  run disk_test_call disk_now_ms
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" =~ ^[0-9]+000$ ]]
+}
+
+@test "kiyome stops when administrator access is refused" {
+  # Arrange
+  attach_blank
+  disk_test_shim sudo "case \"\$1\" in
+  -n) [ \"\${2:-}\" = true ] && exit 1 ;;
+  -v) exit 1 ;;
+esac
+exec \"\$REAL\" \"\$@\""
+
+  # Act
+  run wiping
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == *"Administrator access is required to reach the raw device."* ]]
+  [[ "${output}" == *"kiyome: Administrator access was not granted"* ]]
+}
+
+@test "kiyome continues once administrator access is granted" {
+  # Arrange
+  attach_blank
+  disk_test_shim sudo "case \"\$1\" in
+  -n) [ \"\${2:-}\" = true ] && exit 1 ;;
+  -v) exit 0 ;;
+esac
+exec \"\$REAL\" \"\$@\""
+
+  # Act
+  run wiping
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"Administrator access is required to reach the raw device."* ]]
+}
+
+@test "kiyome resolves a mount point to its whole disk" {
+  # Arrange
+  disk_test_fat_image "${WORK}/fat.img" 8 KIYOMETEST
+  case "${DISK_TEST_OS}" in
+  Darwin)
+    local listing
+    listing="$(hdiutil attach "${WORK}/fat.img")"
+    DEVICE="${listing%%[[:space:]]*}"
+    MOUNTED="${DEVICE}"
+    MOUNT_POINT="$(printf '%s\n' "${listing}" | awk -F'\t' '/\/Volumes\// { print $NF; exit }')"
+    ;;
+  *)
+    DEVICE="$(disk_test_attach_partitioned "${WORK}/fat.img")"
+    disk_test_partition_nodes_start
+    MOUNT_POINT="${WORK}/mnt"
+    mkdir -p "${MOUNT_POINT}"
+    local tries=0
+    until [[ -b "${DEVICE}p1" || "${tries}" -ge 50 ]]; do
+      sleep 0.1
+      tries=$((tries + 1))
+    done
+    sudo mount "${DEVICE}p1" "${MOUNT_POINT}"
+    MOUNTED="${MOUNT_POINT}"
+    ;;
+  esac
+
+  # Act
+  run declining "${MOUNT_POINT}"
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == *"Device: ${DEVICE}"* ]]
+}
+
+@test "kiyome refuses a folder that is not a mount point" {
+  # Arrange
+  local folder="${WORK}/folder"
+  mkdir -p "${folder}"
+
+  # Act
+  run disk_test_run kiyome "${folder}" </dev/null
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == "kiyome: No device found for mount point: ${folder}" ]]
+}
+
+@test "kiyome resolves a partition to its whole disk" {
+  # Arrange
+  disk_test_fat_image "${WORK}/fat.img" 8 KIYOMEPART
+  DEVICE="$(disk_test_attach_partitioned "${WORK}/fat.img")"
+  disk_test_partition_nodes_start
+  local partition
+  case "${DISK_TEST_OS}" in
+  Darwin) partition="${DEVICE}s1" ;;
+  *) partition="${DEVICE}p1" ;;
+  esac
+  local tries=0
+  until [[ -b "${partition}" || "${tries}" -ge 50 ]]; do
+    sleep 0.1
+    tries=$((tries + 1))
+  done
+
+  # Act
+  run declining "${partition}"
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == *"Device: ${DEVICE}"* ]]
+}
+
+@test "kiyome refuses a mounted filesystem that is not a block device" {
+  # Arrange
+  [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "macOS reports a device node for every mounted volume"
+
+  # Act
+  run disk_test_run kiyome /dev/shm </dev/null
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == *"kiyome: Device not found or invalid: "* ]]
+}
+
+@test "kiyome needs openssl for the per-chunk pattern" {
+  # Arrange
+  attach_blank
+  local farm
+  farm="$(disk_test_farm openssl)"
+
+  # Act
+  run disk_test_run_path "${farm}" kiyome "${DEVICE}" </dev/null
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == *"kiyome: openssl is required to build the per-chunk unique pattern"* ]]
+}
+
+@test "doctor marks a missing required tool and a missing pair" {
+  # Arrange
+  local farm
+  farm="$(disk_test_farm dd sha256sum shasum)"
+
+  # Act
+  run disk_test_run_path "${farm}" kiyome doctor
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" =~ (^|$'\n')dd\ +missing\ +required ]]
+  [[ "${output}" =~ (^|$'\n')sha256sum\|shasum\ +missing\ +validates ]]
+}
+
+@test "kiyome runs when called by name from PATH" {
+  # Arrange
+  local bin="${REPO_DIR}/bin"
+  local -a shell_words
+  read -r -a shell_words <<<"${DISK_SHELL:-sh}"
+
+  # Act
+  run bash -c 'cd "$1" && shift && PATH="$PWD:$PATH" "$@" kiyome version' _ "${bin}" "${shell_words[@]}"
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${lines[0]}" == "kiyome 1.0.0" ]]
+}
+
+@test "kiyome goes on when the drive gives no write-protect answer" {
+  # Arrange
+  attach_blank
+  fake_install
+  printf '<string>unknown</string>\n' >"$(fake_dir)/plist/WritableMedia"
+  disk_test_shim blockdev "case \"\$*\" in *--getro*) printf 'unknown\\n'; exit 0 ;; esac
+exec \"\$REAL\" \"\$@\""
+
+  # Act
+  run wiping
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" != *"write protected"* ]]
+}
+
+@test "the sector size falls back to 512 bytes when the drive does not say" {
+  # Arrange
+  attach_blank
+  fake_install
+  printf '/Device Block Size:/d\n' >"$(fake_dir)/info.sed"
+  disk_test_shim blockdev "case \"\$*\" in *--getss*) exit 1 ;; esac
+exec \"\$REAL\" \"\$@\""
+
+  # Act
+  run disk_test_call disk_sector_bytes "${DEVICE}"
+
+  # Assert
+  [[ "${output}" == "512" ]]
+}

@@ -3,7 +3,7 @@ import re
 import sys
 from pathlib import Path
 
-ARTIFACT = re.compile(r"\A\s*(done\s*<.*|[^()\s]+\)\s*;;|\)(\s+\S*>\S*)*\s*&?)\s*\Z")
+ARTIFACT = re.compile(r"\A\s*(done\s*<.*|[^()\s]+\)\s*;;|\)(\s+\S*>\S*)*\s*&?|.*\|\s*\\)\s*\Z")
 Counts = list[int | None]
 Line = tuple[str, int, int, str]
 

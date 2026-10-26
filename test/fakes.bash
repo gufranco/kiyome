@@ -18,6 +18,9 @@ fake_install() {
 fake_install_darwin() {
   local fake="$1"
   disk_test_shim diskutil "fake='${fake}'
+if [ \"\$1\" = info ] && [ -e \"\$fake/gone\" ]; then
+  exit 1
+fi
 case \"\$1 \${2:-}\" in
   'info -plist')
     \"\$REAL\" \"\$@\" | awk -v dir=\"\$fake/plist\" '
@@ -60,6 +63,7 @@ case \"\$*\" in
   *--getro*) [ -f \"\$fake/readonly\" ] && { printf '1\\n'; exit 0; } ;;
   *--getsize64*)
     [ -e \"\$fake/size-fails\" ] && exit 1
+    [ -e \"\$fake/gone\" ] && exit 1
     [ -f \"\$fake/size\" ] && { cat \"\$fake/size\"; exit 0; }
     ;;
 esac

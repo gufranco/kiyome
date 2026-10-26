@@ -72,6 +72,45 @@ disk_test_call() {
   PATH="${search_path}" "${shell_words[@]}" "${DISK_TESTS_DIR}/call.sh" "$@"
 }
 
+disk_test_farm() {
+  local farm="${WORK:?}/farm"
+  local dir tool name excluded
+  mkdir -p "${farm}"
+  local -a dirs
+  local search_path
+  search_path="$(disk_test_path)"
+  IFS=: read -r -a dirs <<<"${search_path}"
+  for dir in "${dirs[@]}"; do
+    [[ -d "${dir}" ]] || continue
+    for tool in "${dir}"/*; do
+      name="${tool##*/}"
+      [[ -x "${tool}" && ! -e "${farm}/${name}" ]] || continue
+      for excluded in "$@"; do
+        [[ "${name}" == "${excluded}" ]] && continue 2
+      done
+      ln -s "${tool}" "${farm}/${name}"
+    done
+  done
+  printf '%s\n' "${farm}"
+}
+
+disk_test_call_path() {
+  local search_path="$1"
+  local -a shell_words
+  shift
+  read -r -a shell_words <<<"${DISK_SHELL:-sh}"
+  PATH="${search_path}" "${shell_words[@]}" "${DISK_TESTS_DIR}/call.sh" "$@"
+}
+
+disk_test_run_path() {
+  local search_path="$1"
+  local program="$2"
+  local -a shell_words
+  shift 2
+  read -r -a shell_words <<<"${DISK_SHELL:-sh}"
+  PATH="${search_path}" "${shell_words[@]}" "${REPO_DIR}/bin/${program}" "$@"
+}
+
 disk_test_attach() {
   local image="$1"
   local listing
@@ -122,6 +161,7 @@ disk_test_partition_nodes_stop() {
   [[ -n "${PARTITION_NODES_PID:-}" ]] || return 0
   kill "${PARTITION_NODES_PID}" 2>/dev/null || true
   wait "${PARTITION_NODES_PID}" 2>/dev/null || true
+  PARTITION_NODES_PID=""
 }
 
 disk_test_detach() {
