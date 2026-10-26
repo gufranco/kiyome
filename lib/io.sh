@@ -26,9 +26,6 @@ disk_release() {
           DISK_RELEASED=$((DISK_RELEASED + 1))
         fi
       done
-      if sudo umount "${disk_rl_disk}" 2>/dev/null; then
-        DISK_RELEASED=$((DISK_RELEASED + 1))
-      fi
       if ! disk_rl_mounts="$(lsblk -nro MOUNTPOINT "${disk_rl_disk}" 2>/dev/null)"; then
         return 2
       fi
