@@ -19,7 +19,7 @@
 
 </div>
 
-コマンドは1つ、テストは9件、シェルのモジュールは9個で、POSIXシステム以外に実行時の依存はありません。`kiyome`は日本語の「清め」です。姉妹ツールの[kakikomi](https://github.com/gufranco/kakikomi)はディスクイメージを書き込みます。
+コマンドは1つ、テストは130件、シェルのモジュールは9個で、POSIXシステム以外に実行時の依存はありません。`kiyome`は日本語の「清め」です。姉妹ツールの[kakikomi](https://github.com/gufranco/kakikomi)はディスクイメージを書き込みます。
 
 ---
 
@@ -131,7 +131,7 @@ kiyomeはまずディスク自体の速度を測り、その値から各転送�
 | コマンド | 説明 |
 |:--------|:------------|
 | `make lint` | すべてのスクリプトにShellCheckを実行し、関数が二重に定義されていないことを確認します |
-| `make test` | システムの`sh`で9件の`bats`テスト |
+| `make test` | システムの`sh`で130件の`bats`テスト |
 | `make test-all` | インストール済みのすべてのシェルで同じテスト |
 | `make test-linux` | Macから、特権付きUbuntuコンテナで同じテスト |
 | `make coverage` | このMacと同じコンテナでbashcovによる行カバレッジを測定して統合します。CIは100%を必須にします |
