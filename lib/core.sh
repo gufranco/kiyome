@@ -3,10 +3,10 @@
 # shellcheck source=SCRIPTDIR/state.sh
 . "${DISK_LIB:?}/state.sh"
 
-KAKIKOMI_VERSION="1.0.0"
+KIYOME_VERSION="1.0.0"
 
 disk_version() {
-  printf '%s %s\n' "$1" "${KAKIKOMI_VERSION}"
+  printf '%s %s\n' "$1" "${KIYOME_VERSION}"
 }
 
 disk_log() {

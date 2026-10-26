@@ -37,5 +37,5 @@ jobs:
           TAG: ${{ inputs.tag }}
         run: |
           jq -nc --arg tag "${TAG}" \
-            '{event_type: "formula-bump", client_payload: {name: "kakikomi", tag: $tag}}' \
+            '{event_type: "formula-bump", client_payload: {name: "kiyome", tag: $tag}}' \
             | gh api --method POST repos/gufranco/homebrew-tap/dispatches --input -

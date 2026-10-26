@@ -65,25 +65,10 @@ disk_doctor_core() {
   return "${disk_dc_status}"
 }
 
-disk_doctor_formats() {
-  disk_doctor_tool curl optional "needed to write from a URL"
-  disk_doctor_tool gzip optional "needed for .gz images"
-  disk_doctor_tool xz optional "needed for .xz images"
-  disk_doctor_tool zstd optional "needed for .zst images"
-  disk_doctor_tool bzip2 optional "needed for .bz2 images"
-  disk_doctor_either bsdtar 7z optional "needed for .zip images and Windows ISOs"
-  disk_doctor_tool qemu-img optional "needed for .vhd, .vhdx, .vmdk and .qcow2 images"
-  disk_doctor_tool mcopy optional "mtools, needed for Windows ISOs and format"
-  disk_doctor_tool wimlib-imagex optional "wimlib, needed for Windows ISOs over 4 GiB"
-}
-
 disk_doctor() {
   disk_dr_status=0
   disk_doctor_core || disk_dr_status=1
-  case "${DISK_PROG}" in
-  kiyome) disk_doctor_tool openssl required "builds the per-chunk unique pattern" || disk_dr_status=1 ;;
-  *) disk_doctor_formats ;;
-  esac
+  disk_doctor_tool openssl required "builds the per-chunk unique pattern" || disk_dr_status=1
   return "${disk_dr_status}"
 }
 
@@ -101,20 +86,6 @@ disk_prompt() {
   disk_ak_answer=""
   IFS= read -r disk_ak_answer || [ -n "${disk_ak_answer}" ] || return 1
   printf '%s\n' "${disk_ak_answer:-$2}"
-}
-
-disk_ask_required() {
-  disk_ar_tries=0
-  while [ "${disk_ar_tries}" -lt 3 ]; do
-    disk_ar_value="$(disk_prompt "$1" "")" || return 1
-    if [ -n "${disk_ar_value}" ]; then
-      printf '%s\n' "${disk_ar_value}"
-      return 0
-    fi
-    disk_ar_tries=$((disk_ar_tries + 1))
-  done
-  disk_cli_hint "$2"
-  return 1
 }
 
 disk_pick_single() {

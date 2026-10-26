@@ -64,7 +64,7 @@ export LC_ALL
 : "${DISK_BREACH_LOG:=}"
 : "${DISK_BREACH_PID:=}"
 : "${DISK_LOG_TAG:=}"
-: "${DISK_PROG:=kakikomi}"
+: "${DISK_PROG:=kiyome}"
 : "${DISK_PROGRESS_STEP:=0}"
 : "${DISK_STOP_FILE:=}"
 : "${DISK_PADDED:=0}"

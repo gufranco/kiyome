@@ -11,7 +11,7 @@ hashbang=$(printf '\043\041')
 rm -rf "${root}/coverage"
 mkdir -p "${root}/coverage"
 
-wrapper_dir=$(mktemp -d "${TMPDIR:-/tmp}/kakikomi-coverage-XXXXXX")
+wrapper_dir=$(mktemp -d "${TMPDIR:-/tmp}/kiyome-coverage-XXXXXX")
 trap 'rm -rf "${wrapper_dir}"' EXIT
 wrapper="${wrapper_dir}/bashcov-shell"
 {
@@ -26,4 +26,4 @@ chmod 0755 "${wrapper}"
 DISK_SHELL="${wrapper}" bats "${root}/test"
 
 cd "${root}"
-python3 scripts/coverage-gate.py '/(bin/(kakikomi|kiyome)|lib/[a-z]+\.sh)\Z' "${minimum}" coverage/.resultset.json
+python3 scripts/coverage-gate.py '/(bin/kiyome|lib/[a-z]+\.sh)\Z' "${minimum}" coverage/.resultset.json

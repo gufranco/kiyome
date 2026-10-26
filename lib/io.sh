@@ -112,7 +112,7 @@ disk_direct_round_trip() {
   disk_dr_size="$(sudo blockdev --getsize64 "$1" 2>/dev/null)"
   disk_is_uint "${disk_dr_size}" || return 1
   [ "${disk_dr_size}" -ge "${disk_dr_block}" ] || disk_dr_block="$2"
-  disk_dr_file="${TMPDIR:-/tmp}/kakikomi-direct.$$"
+  disk_dr_file="${TMPDIR:-/tmp}/kiyome-direct.$$"
   disk_dr_status=1
   if sudo dd if="$1" of="${disk_dr_file}" bs="${disk_dr_block}" count=1 iflag=direct status=none 2>/dev/null &&
     sudo dd if="${disk_dr_file}" of="$1" bs="${disk_dr_block}" count=1 oflag=direct conv=notrunc status=none 2>/dev/null; then

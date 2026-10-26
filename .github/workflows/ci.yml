@@ -114,7 +114,7 @@ jobs:
           path: results
       - name: Merge both platforms and enforce 100% line coverage
         run: >-
-          python3 scripts/coverage-gate.py '/(bin/(kakikomi|kiyome)|lib/[a-z]+\.sh)\Z' 100
+          python3 scripts/coverage-gate.py '/(bin/kiyome|lib/[a-z]+\.sh)\Z' 100
           results/coverage-Linux/.resultset.json results/coverage-macOS/.resultset.json
 
   release:
