@@ -7,9 +7,16 @@ Bashcov.parse_options!(ARGV)
 
 require "bashcov/runner"
 
+Thread.report_on_exception = false
 runner = Bashcov::Runner.new(Bashcov.command)
 status = runner.run
-coverage = runner.result
+coverage = File.open(File::NULL, "w") do |quiet|
+  original_stderr = $stderr
+  $stderr = quiet
+  runner.result
+ensure
+  $stderr = original_stderr
+end
 
 require "simplecov"
 
