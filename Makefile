@@ -9,12 +9,13 @@ help:
 	@echo "  test        bats suites under the system sh"
 	@echo "  test-all    bats suites under every installed shell"
 	@echo "  test-linux  the same suites in a privileged Ubuntu container"
-	@echo "  coverage    kcov line coverage in the Ubuntu container, floor 66%"
+	@echo "  coverage    bashcov line coverage on this Mac and in the Ubuntu container, gate 100%"
 	@echo "  check       lint and test"
 	@echo "  install     copy bin/ and lib/ under PREFIX (default ~/.local)"
 
 lint:
 	shellcheck -x -s sh -o all bin/kakikomi bin/kiyome lib/*.sh scripts/*.sh
+	sh scripts/check-names.sh
 	shellcheck -x -o all test/*.sh test/*.bash test/*.bats test/shim/sudo
 
 test:
@@ -27,7 +28,9 @@ test-linux:
 	sh test/linux-container.sh sh test/run-matrix.sh test
 
 coverage:
-	sh test/linux-container.sh sh -c 'apt-get install -y -qq kcov >/dev/null && sh scripts/coverage.sh 66'
+	sh scripts/coverage.sh 0 && cp -f coverage/.resultset.json coverage-macos.json
+	sh test/linux-container.sh sh scripts/linux-coverage.sh
+	python3 scripts/coverage-gate.py '/(bin/(kakikomi|kiyome)|lib/[a-z]+\.sh)\Z' 100 coverage-macos.json coverage-linux.json
 
 check: lint test
 

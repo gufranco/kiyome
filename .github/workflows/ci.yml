@@ -66,25 +66,60 @@ jobs:
         run: sh test/run-matrix.sh test
 
   coverage:
-    name: coverage gate
-    runs-on: ubuntu-26.04
-    timeout-minutes: 60
+    name: coverage (${{ matrix.runner }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-26.04, macos-26]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           persist-credentials: false
-      - name: Install kcov and the test tools
+      - uses: ruby/setup-ruby@7f797815d8adceb1c412e7abefdd1ab4abc47a5f  # v1.335.0
+        with:
+          bundler-cache: true
+      - name: Install the test tools (Linux)
+        if: runner.os == 'Linux'
         run: |
           set -euo pipefail
           sudo apt-get update -qq
-          sudo apt-get install -y -qq bats kcov dosfstools fdisk xz-utils zstd bzip2 \
+          sudo apt-get install -y -qq bats dosfstools fdisk xz-utils zstd bzip2 \
             libarchive-tools qemu-utils dmsetup mtools exfatprogs wimtools xorriso
-      - name: Enforce the coverage floor
-        run: sh scripts/coverage.sh 66
+      - name: Install the test tools (macOS)
+        if: runner.os == 'macOS'
+        run: brew install bats-core mtools wimlib xz zstd qemu
+      - name: Measure line coverage
+        run: sh scripts/coverage.sh 0
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        with:
+          name: coverage-${{ runner.os }}
+          path: coverage/.resultset.json
+          include-hidden-files: true
+          retention-days: 1
+
+  coverage-gate:
+    name: coverage gate
+    needs: coverage
+    runs-on: ubuntu-26.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
+        with:
+          pattern: coverage-*
+          path: results
+      - name: Merge both platforms and enforce 100% line coverage
+        run: >-
+          python3 scripts/coverage-gate.py '/(bin/(kakikomi|kiyome)|lib/[a-z]+\.sh)\Z' 100
+          results/coverage-Linux/.resultset.json results/coverage-macOS/.resultset.json
 
   release:
     name: release
-    needs: [lint, test, coverage]
+    needs: [lint, test, coverage-gate]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-26.04
     timeout-minutes: 15

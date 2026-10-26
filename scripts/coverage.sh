@@ -2,44 +2,28 @@
 set -eu
 
 root=$(cd "$(dirname "$0")/.." && pwd)
-minimum=${1:-95}
-coverage_dir="${root}/coverage"
-runs_dir="${coverage_dir}/runs"
-merged_dir="${coverage_dir}/merged"
-kcov_bin=$(command -v kcov)
+minimum=${1:-100}
+bash_bin=$(command -v bash)
+ruby_bin=$(command -v ruby)
+bashcov_bin="${root}/scripts/bashcov-run.rb"
 hashbang=$(printf '\043\041')
 
-rm -rf "${coverage_dir}"
-mkdir -p "${runs_dir}"
+rm -rf "${root}/coverage"
+mkdir -p "${root}/coverage"
 
-wrapper="${coverage_dir}/kcov-shell"
+wrapper_dir=$(mktemp -d "${TMPDIR:-/tmp}/kakikomi-coverage-XXXXXX")
+trap 'rm -rf "${wrapper_dir}"' EXIT
+wrapper="${wrapper_dir}/bashcov-shell"
 {
-  printf '%s/bin/sh\n' "${hashbang}"
-  printf 'exec %s --bash-handle-sh-invocation --include-path=%s/bin,%s/lib "%s/run-$$" "$@"\n' \
-    "${kcov_bin}" "${root}" "${root}" "${runs_dir}"
+  printf '%s%s\n' "${hashbang}" "${bash_bin}"
+  printf 'export BUNDLE_GEMFILE="%s/Gemfile"\n' "${root}"
+  # shellcheck disable=SC2016
+  printf 'exec "%s" -rbundler/setup "%s" --root "%s" --bash-path "%s" --command-name "run-$$-${RANDOM}" -- "$@"\n' \
+    "${ruby_bin}" "${bashcov_bin}" "${root}" "${bash_bin}"
 } >"${wrapper}"
 chmod 0755 "${wrapper}"
 
-DISK_COVERAGE=1 DISK_SHELL="${wrapper}" bats "${root}/test"
+DISK_SHELL="${wrapper}" bats "${root}/test"
 
-"${kcov_bin}" --merge "${merged_dir}" "${runs_dir}"/run-* >/dev/null 2>&1
-
-summary=$(find "${merged_dir}" -name 'coverage.json' -print | head -n 1)
-if [ -z "${summary}" ]; then
-  printf 'no coverage.json produced under %s\n' "${merged_dir}" >&2
-  exit 1
-fi
-
-python3 - "${summary}" "${minimum}" <<'PY'
-import json
-import sys
-
-report = json.load(open(sys.argv[1]))
-actual = float(report["percent_covered"])
-minimum = float(sys.argv[2])
-print("covered %s of %s lines (%.2f%%), gate %.2f%%" % (
-    report["covered_lines"], report["total_lines"], actual, minimum))
-if actual + 1e-9 < minimum:
-    sys.stderr.write("coverage %.2f%% is below the %.2f%% gate\n" % (actual, minimum))
-    sys.exit(1)
-PY
+cd "${root}"
+python3 scripts/coverage-gate.py '/(bin/(kakikomi|kiyome)|lib/[a-z]+\.sh)\Z' "${minimum}" coverage/.resultset.json
