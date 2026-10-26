@@ -24,7 +24,7 @@ disk_test_shim() {
   SHIMS="${SHIMS:-${WORK:?}/shims}"
   mkdir -p "${SHIMS}"
   real="$(PATH="$(disk_test_path_without_shims)" command -v "${name}" || true)"
-  printf '#!/bin/sh\nREAL=%q\n%s\n' "${real}" "${body}" >"${SHIMS}/${name}"
+  printf '#!/bin/sh\n{ set +x; } 2>/dev/null\nREAL=%q\n%s\n' "${real}" "${body}" >"${SHIMS}/${name}"
   chmod +x "${SHIMS}/${name}"
   if [[ "${DISK_TEST_OS}" == "Linux" && ! -e "${SHIMS}/sudo" ]]; then
     disk_test_sudo_passthrough
@@ -44,7 +44,7 @@ disk_test_sudo_passthrough() {
   local real
   real="$(command -v sudo)"
   # shellcheck disable=SC2016
-  printf '#!/bin/sh\ncase "${1:-}" in\n  -*) exec %q "$@" ;;\nesac\nexec %q env "PATH=$PATH" "$@"\n' "${real}" "${real}" >"${SHIMS}/sudo"
+  printf '#!/bin/sh\n{ set +x; } 2>/dev/null\ncase "${1:-}" in\n  -*) exec %q "$@" ;;\nesac\nexec %q env "PATH=$PATH" "$@"\n' "${real}" "${real}" >"${SHIMS}/sudo"
   chmod +x "${SHIMS}/sudo"
 }
 
@@ -146,8 +146,10 @@ disk_test_partition_nodes_start() {
       for part in /sys/block/loop*/loop*p*; do
         [[ -e "${part}/dev" ]] || continue
         node="/dev/${part##*/}"
-        [[ -b "${node}" ]] && continue
         IFS=: read -r major minor <"${part}/dev"
+        current="$(stat -c '%Hr:%Lr' "${node}" 2>/dev/null || true)"
+        [[ "${current}" == "${major}:${minor}" ]] && continue
+        sudo rm -f "${node}"
         sudo mknod -m 660 "${node}" b "${major}" "${minor}" 2>/dev/null || true
       done
       sleep 0.2
