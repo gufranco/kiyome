@@ -10,11 +10,7 @@ disk_version() {
 }
 
 disk_log() {
-  if [ -n "${DISK_LOG_TAG}" ]; then
-    printf '%s%s: %s\n' "$1" "${DISK_LOG_TAG}" "$2"
-  else
-    printf '%s%s\n' "$1" "$2"
-  fi
+  printf '%s%s\n' "$1" "$2"
 }
 
 disk_info() {

@@ -123,8 +123,7 @@ disk_create_partition() {
   disk_cp_os="$(disk_os)"
   case "${disk_cp_os}" in
     Darwin) disk_format_darwin "$1" "${disk_cp_fs}" "${disk_cp_label}" ;;
-    Linux) disk_format_linux "$1" "${disk_cp_fs}" "${disk_cp_label}" ;;
-    *) return 1 ;;
+    *) disk_format_linux "$1" "${disk_cp_fs}" "${disk_cp_label}" ;;
   esac
 }
 

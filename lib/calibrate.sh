@@ -70,8 +70,7 @@ disk_pattern_file() {
       0x00) head -c "$1" /dev/zero >"${disk_pf_target}" || return 1 ;;
       0xFF) head -c "$1" /dev/zero | tr '\000' '\377' >"${disk_pf_target}" || return 1 ;;
       0xAA) head -c "$1" /dev/zero | tr '\000' '\252' >"${disk_pf_target}" || return 1 ;;
-      0x55) head -c "$1" /dev/zero | tr '\000' '\125' >"${disk_pf_target}" || return 1 ;;
-      *) return 1 ;;
+      0x55 | *) head -c "$1" /dev/zero | tr '\000' '\125' >"${disk_pf_target}" || return 1 ;;
     esac
   fi
   disk_pf_size="$(disk_file_size "${disk_pf_target}")"
@@ -86,10 +85,6 @@ disk_expected_ms() {
   else
     disk_ex_overhead="${DISK_OVERHEAD_READ}"
     disk_ex_rate="${DISK_RATE_READ}"
-  fi
-  if [ "${disk_ex_rate:-0}" -le 0 ]; then
-    printf '0\n'
-    return 0
   fi
   printf '%s\n' "$((disk_ex_overhead + ($2 * 1000) / disk_ex_rate))"
 }
@@ -379,9 +374,6 @@ disk_watch() {
   disk_wt_elapsed="$6"
   disk_wt_ceiling=$((${STALL_SECONDS:-0} * 1000))
   DISK_REASON=""
-  if [ -n "${DISK_STOP_FILE:-}" ] && [ -f "${DISK_STOP_FILE}" ]; then
-    return 0
-  fi
   disk_is_uint "${disk_wt_elapsed}" || disk_wt_elapsed=0
   disk_wt_took="$(disk_duration "${disk_wt_elapsed}")"
 

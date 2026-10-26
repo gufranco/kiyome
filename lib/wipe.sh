@@ -41,10 +41,6 @@ disk_wipe_attempt() {
     fi
     return 1
   fi
-  if [ -n "${DISK_STOP_FILE:-}" ] && [ -f "${DISK_STOP_FILE}" ]; then
-    DISK_INTERRUPTED=1
-    return 4
-  fi
   disk_wa_now="$(disk_now_ms)"
   disk_is_uint "${disk_wa_started}" || disk_wa_started="${disk_wa_now}"
   disk_is_uint "${disk_wa_now}" || disk_wa_now="${disk_wa_started}"
