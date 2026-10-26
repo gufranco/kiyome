@@ -43,10 +43,6 @@ declining() {
   printf 'n\n' | disk_test_run kiyome "$1"
 }
 
-real_timeout() {
-  command -v timeout || command -v gtimeout
-}
-
 @test "a bounded command past its limit is stopped without timeout" {
   # Arrange
   local farm
@@ -73,9 +69,15 @@ real_timeout() {
 
 @test "a bounded command uses gtimeout when timeout is missing" {
   # Arrange
-  local runner
-  runner="$(real_timeout)"
-  disk_test_shim gtimeout "exec '${runner}' \"\$@\""
+  disk_test_shim gtimeout "while [ \"\$#\" -gt 0 ]; do
+  case \"\$1\" in
+    -k) shift 2 ;;
+    -*) shift ;;
+    *) break ;;
+  esac
+done
+shift
+exec \"\$@\""
   local farm
   farm="$(disk_test_farm timeout)"
 
@@ -88,9 +90,15 @@ real_timeout() {
 
 @test "a millisecond bound uses gtimeout when timeout is missing" {
   # Arrange
-  local runner
-  runner="$(real_timeout)"
-  disk_test_shim gtimeout "exec '${runner}' \"\$@\""
+  disk_test_shim gtimeout "while [ \"\$#\" -gt 0 ]; do
+  case \"\$1\" in
+    -k) shift 2 ;;
+    -*) shift ;;
+    *) break ;;
+  esac
+done
+shift
+exec \"\$@\""
   local farm
   farm="$(disk_test_farm timeout)"
 

@@ -1,4 +1,5 @@
 #!/usr/bin/env bats
+# shellcheck disable=SC2030,SC2031
 
 # shellcheck source=test/helpers.bash
 source "${BATS_TEST_DIRNAME:-.}/helpers.bash"
@@ -98,7 +99,7 @@ bus_error="printf 'dd: Device not configured\\n' >&2; exit 1"
 @test "a long probe failing is reported at its offset" {
   # Arrange
   attach 2097152
-  fail_dd "*of=*calibration*bs=4096\ skip=1\ count=128*" "${io_error}"
+  fail_dd "*of=*calibration*bs=4096\ skip=1\ count=*" "${io_error}"
 
   # Act
   run wiping "SLOW_FACTOR=50 CALIBRATION_PROBES=2"
@@ -205,15 +206,14 @@ bus_error="printf 'dd: Device not configured\\n' >&2; exit 1"
 
 @test "a chunk slower than this disk measured stops the wipe" {
   # Arrange
-  attach 2097152
-  fail_dd "*unique-chunk*of=*" "sleep 1"
+  export DISK_MEASURED=1 DISK_RATE_WRITE=1048576 DISK_OVERHEAD_WRITE=100 DISK_FACTOR_WRITE=300 DISK_DRIFT_WRITE=100 DISK_SLACK=2
 
   # Act
-  run wiping "SLOW_FACTOR=1"
+  run disk_test_call call_watch write write 3 9 1048576 5000
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"allowed by what this disk measured"* ]]
+  [[ "${output}" == "write chunk 3 of 9 took 5s against 3s allowed by what this disk measured" ]]
 }
 
 @test "a wipe that settles at a slower speed is stopped" {
