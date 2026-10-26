@@ -39,13 +39,21 @@ jobs:
         run: pipx run yamllint==1.37.1 -s -c .yamllint.yml .github .yamllint.yml
 
   test:
-    name: test (${{ matrix.runner }})
+    name: test (${{ matrix.runner }}, ${{ matrix.shell }})
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 120
+    timeout-minutes: 180
     strategy:
       fail-fast: false
       matrix:
-        runner: [ubuntu-26.04, macos-26]
+        include:
+          - runner: ubuntu-26.04
+            shell: dash
+          - runner: ubuntu-26.04
+            shell: zsh
+          - runner: macos-26
+            shell: /bin/sh
+          - runner: macos-26
+            shell: zsh
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
@@ -59,10 +67,10 @@ jobs:
             libarchive-tools qemu-utils dmsetup mtools exfatprogs wimtools xorriso
       - name: Install shells and tools (macOS)
         if: runner.os == 'macOS'
-        run: brew install bats-core dash mtools wimlib xz zstd qemu
-      - name: Run the suites under the system sh and zsh
+        run: brew install --formula bats-core dash mtools wimlib xz zstd qemu
+      - name: Run the suites under ${{ matrix.shell }}
         env:
-          DISK_SHELLS: ${{ runner.os == 'Linux' && 'dash|zsh' || '/bin/sh|zsh' }}
+          DISK_SHELLS: ${{ matrix.shell }}
         run: sh test/run-matrix.sh test
 
   coverage:
@@ -89,7 +97,7 @@ jobs:
             libarchive-tools qemu-utils dmsetup mtools exfatprogs wimtools xorriso
       - name: Install the test tools (macOS)
         if: runner.os == 'macOS'
-        run: brew install bats-core mtools wimlib xz zstd qemu
+        run: brew install --formula bash bats-core mtools wimlib xz zstd qemu
       - name: Measure line coverage
         run: sh scripts/coverage.sh 0
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
