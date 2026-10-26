@@ -204,6 +204,21 @@ bus_error="printf 'dd: Device not configured\\n' >&2; exit 1"
   [[ "${output}" == "write chunk 3 of 9 took 2s, over the 1s limit you set" ]]
 }
 
+@test "a wipe whose chunk passes the stall limit stops at that chunk" {
+  # Arrange
+  attach 2097152
+  local counter="${WORK}/clock"
+  printf '100000000\n' >"${counter}"
+  disk_test_shim perl "now=\$(cat '${counter}'); printf '%s\\n' \$((now + 3000)) >'${counter}'; printf '%s\\n' \"\${now}\""
+
+  # Act
+  run wiping "STALL_SECONDS=1"
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == *"write chunk 1 of "*" took 3s, over the 1s limit you set"* ]]
+}
+
 @test "a chunk slower than this disk measured stops the wipe" {
   # Arrange
   export DISK_MEASURED=1 DISK_RATE_WRITE=1048576 DISK_OVERHEAD_WRITE=100 DISK_FACTOR_WRITE=300 DISK_DRIFT_WRITE=100 DISK_SLACK=2

@@ -19,7 +19,7 @@
 
 </div>
 
-一個指令，130 個測試，9 個 shell 模組，除咗 POSIX 系統之外冇任何執行時依賴。`kiyome` 係日文「清め」，即係淨化。佢嘅姊妹工具 [kakikomi](https://github.com/gufranco/kakikomi) 用嚟寫入磁碟映像。
+一個指令，131 個測試，9 個 shell 模組，除咗 POSIX 系統之外冇任何執行時依賴。`kiyome` 係日文「清め」，即係淨化。佢嘅姊妹工具 [kakikomi](https://github.com/gufranco/kakikomi) 用嚟寫入磁碟映像。
 
 ---
 
@@ -131,7 +131,7 @@ kiyome 會先測量磁碟本身嘅速度，再根據結果為每次傳輸設定�
 | 指令 | 說明 |
 |:--------|:------------|
 | `make lint` | 對每個腳本執行 ShellCheck，並檢查冇函數被重複定義 |
-| `make test` | 喺系統 `sh` 之下執行 130 個 `bats` 測試 |
+| `make test` | 喺系統 `sh` 之下執行 131 個 `bats` 測試 |
 | `make test-all` | 喺每個已安裝嘅 shell 之下執行相同測試 |
 | `make test-linux` | 由 Mac 喺特權 Ubuntu 容器入面執行相同測試 |
 | `make coverage` | 喺呢部 Mac 同同一個容器用 bashcov 量度行覆蓋率並合併，CI 要求 100% |
