@@ -36,4 +36,18 @@ call_first_boot_disk() {
   printf '%s\n' "${disk_cb_list}" | sed -n '1p'
 }
 
+call_exact_reference() {
+  disk_make_tmpdir reference || return 1
+  head -c "$1" /dev/zero >"${DISK_TMPDIR}/pattern" || return 1
+  disk_ce_file="$(disk_exact_reference "${DISK_TMPDIR}/pattern" "$2")" || return 1
+  wc -c <"${disk_ce_file}" | tr -d ' '
+  rm -rf "${DISK_TMPDIR}"
+}
+
+call_watch() {
+  disk_watch "$@" && return 0
+  printf '%s\n' "${DISK_REASON}"
+  return 1
+}
+
 "$@"

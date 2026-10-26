@@ -227,3 +227,61 @@ exec \"\$REAL\" \"\$@\""
   [[ "${status}" -eq 1 ]]
   [[ "${output}" == *"kiyome: Failed to format floppy"* ]]
 }
+
+@test "kiyome ejects the drive once the wipe finishes on Linux" {
+  # Arrange
+  [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "a disk image on macOS ejects through diskutil"
+  disk_test_shim eject "exit 0"
+
+  # Act
+  run wiping
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"Device ejected successfully"* ]]
+}
+
+@test "kiyome ejects the cartridge after a fault on Linux" {
+  # Arrange
+  [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "a disk image on macOS ejects through diskutil"
+  disk_test_shim eject "exit 0"
+  pass_dd "printf 'dd: error writing: Input/output error\\n' >&2; exit 1"
+
+  # Act
+  run wiping
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == *"Cartridge ejected."* ]]
+}
+
+@test "kiyome waits on every transfer when the deadline cap is zero" {
+  # Arrange
+  local settings="DEADLINE_CAP_MS=0"
+
+  # Act
+  run wiping "${settings}"
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"Verify per-chunk unique data completed"* ]]
+}
+
+@test "kiyome leaves a floppy that stays mounted for the hand to remove" {
+  # Arrange
+  [[ "${DISK_TEST_OS}" == "Darwin" ]] || skip "Linux ejects every drive the same way"
+  fake_identity_as "TEAC USB-FDU"
+  fake_flag unmount-fails
+  fake_flag mounts-after
+  local fake
+  fake="$(fake_dir)"
+  printf '%s on /Volumes/FAKE (msdos, local)\n' "${DEVICE}" >"${fake}/mounts"
+  disk_test_shim sync ": >'${fake}/wiped'"
+
+  # Act
+  run wiping
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"Device is still mounted. Remove the disk by hand once it is idle."* ]]
+}

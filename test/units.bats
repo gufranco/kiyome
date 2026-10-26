@@ -1,4 +1,5 @@
 #!/usr/bin/env bats
+# shellcheck disable=SC2030,SC2031
 
 # shellcheck source=test/helpers.bash
 source "${BATS_TEST_DIRNAME:-.}/helpers.bash"
@@ -274,4 +275,50 @@ source "${BATS_TEST_DIRNAME:-.}/helpers.bash"
 
   # Assert
   [[ "${output}" == $'kiyome: warning: first\nkiyome: warning: second' ]]
+}
+
+@test "a reference longer than the chunk is trimmed to the chunk" {
+  # Arrange
+  local pattern=8192
+
+  # Act
+  run disk_test_call call_exact_reference "${pattern}" 512
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == "512" ]]
+}
+
+@test "a working directory that cannot be made stops with a message" {
+  # Arrange
+  export TMPDIR="${BATS_TMPDIR:-/tmp}/kiyome-missing-${RANDOM}/deeper"
+
+  # Act
+  run disk_test_call disk_make_tmpdir kiyome
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == *"kiyome: Unable to create a working directory"* ]]
+}
+
+@test "an unknown system cannot release a disk" {
+  # Arrange
+  export DISK_OS=FreeBSD
+
+  # Act
+  run disk_test_call disk_release /dev/da0
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+}
+
+@test "an unknown system treats every disk as internal" {
+  # Arrange
+  export DISK_OS=FreeBSD
+
+  # Act
+  run disk_test_call disk_is_internal /dev/da0
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
 }

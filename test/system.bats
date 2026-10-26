@@ -192,7 +192,7 @@ exec \"\$REAL\" \"\$@\""
     MOUNT_POINT="${WORK}/mnt"
     mkdir -p "${MOUNT_POINT}"
     local tries=0
-    until [[ -b "${DEVICE}p1" || "${tries}" -ge 50 ]]; do
+    until [[ -b "${DEVICE}p1" || "${tries}" -ge 200 ]]; do
       sleep 0.1
       tries=$((tries + 1))
     done
@@ -207,6 +207,66 @@ exec \"\$REAL\" \"\$@\""
   # Assert
   [[ "${status}" -eq 1 ]]
   [[ "${output}" == *"Device: ${DEVICE}"* ]]
+}
+
+@test "kiyome unmounts each volume when the whole disk will not unmount on macOS" {
+  # Arrange
+  [[ "${DISK_TEST_OS}" == "Darwin" ]] || skip "Linux unmounts each partition already"
+  disk_test_fat_image "${WORK}/fat.img" 8 KIYOMESLICE
+  local listing
+  listing="$(hdiutil attach "${WORK}/fat.img")"
+  DEVICE="${listing%%[[:space:]]*}"
+  MOUNTED="${DEVICE}"
+  fake_install
+  fake_flag unmount-fails
+
+  # Act
+  run wiping
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"Disk unmounted"* ]]
+}
+
+@test "kiyome unmounts a mounted partition before it wipes on Linux" {
+  # Arrange
+  [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "macOS unmounts the whole disk through diskutil"
+  disk_test_fat_image "${WORK}/fat.img" 8 KIYOMEPART
+  DEVICE="$(disk_test_attach_partitioned "${WORK}/fat.img")"
+  disk_test_partition_nodes_start
+  mkdir -p "${WORK}/mnt"
+  local tries=0
+  until [[ -b "${DEVICE}p1" || "${tries}" -ge 200 ]]; do
+    sleep 0.1
+    tries=$((tries + 1))
+  done
+  sudo mount "${DEVICE}p1" "${WORK}/mnt"
+  MOUNTED="${WORK}/mnt"
+
+  # Act
+  run wiping
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"Disk unmounted"* ]]
+}
+
+@test "kiyome unmounts a filesystem on the whole disk before it wipes on Linux" {
+  # Arrange
+  [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "macOS unmounts the whole disk through diskutil"
+  disk_test_image "${WORK}/whole.img" 8
+  mkfs.fat -F 16 -s 1 -n KIYOMEWHOLE "${WORK}/whole.img" >/dev/null
+  DEVICE="$(disk_test_attach "${WORK}/whole.img")"
+  mkdir -p "${WORK}/mnt"
+  sudo mount "${DEVICE}" "${WORK}/mnt"
+  MOUNTED="${WORK}/mnt"
+
+  # Act
+  run wiping
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"Disk unmounted"* ]]
 }
 
 @test "kiyome refuses a folder that is not a mount point" {
@@ -233,7 +293,7 @@ exec \"\$REAL\" \"\$@\""
   *) partition="${DEVICE}p1" ;;
   esac
   local tries=0
-  until [[ -b "${partition}" || "${tries}" -ge 50 ]]; do
+  until [[ -b "${partition}" || "${tries}" -ge 200 ]]; do
     sleep 0.1
     tries=$((tries + 1))
   done

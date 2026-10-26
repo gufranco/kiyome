@@ -193,15 +193,14 @@ bus_error="printf 'dd: Device not configured\\n' >&2; exit 1"
 
 @test "a chunk past the stall limit you set stops the wipe" {
   # Arrange
-  attach 2097152
-  fail_dd "*unique-chunk*of=*" "sleep 2"
+  export STALL_SECONDS=1
 
   # Act
-  run wiping "SLOW_FACTOR=50 STALL_SECONDS=1"
+  run disk_test_call call_watch write write 3 9 1048576 2000
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"over the 1s limit you set"* ]]
+  [[ "${output}" == "write chunk 3 of 9 took 2s, over the 1s limit you set" ]]
 }
 
 @test "a chunk slower than this disk measured stops the wipe" {
@@ -217,16 +216,14 @@ bus_error="printf 'dd: Device not configured\\n' >&2; exit 1"
   [[ "${output}" == *"allowed by what this disk measured"* ]]
 }
 
-@test "a disk that settles at a slower speed stops the wipe" {
+@test "a wipe that settles at a slower speed is stopped" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Darwin" ]] || skip "loop devices report no seek overhead, so there is no slack to settle in"
-  attach 2097152
-  fail_dd "*unique-chunk*of=*" "sleep 0.02"
+  export DISK_MEASURED=1 DISK_RATE_WRITE=1048576 DISK_OVERHEAD_WRITE=100 DISK_FACTOR_WRITE=300 DISK_DRIFT_WRITE=400 DISK_SLACK=50
 
   # Act
-  run wiping "SLOW_FACTOR=1"
+  run disk_test_call call_watch write write 3 9 1048576 5000
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"has settled at"* ]]
+  [[ "${output}" == "write has settled at 4x the speed this disk measured on itself, which it held for the last chunks" ]]
 }
