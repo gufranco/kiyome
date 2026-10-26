@@ -5,6 +5,7 @@ source "${BATS_TEST_DIRNAME:-.}/helpers.bash"
 
 setup() {
   WORK="$(mktemp -d "${BATS_TMPDIR:-/tmp}/disk-wipe.XXXXXX")"
+  export SLOW_FACTOR=50
   IMAGE="${WORK}/target.img"
   disk_test_image "${IMAGE}" 4
   DEVICE="$(disk_test_attach "${IMAGE}")"
@@ -20,7 +21,6 @@ disk_wipe_run() {
 }
 
 @test "kiyome output matches the recorded golden run" {
-  [[ -z "${DISK_COVERAGE:-}" ]] || skip "kcov changes process names and stderr order; the shell matrices run this test"
   # Arrange
   local name="wipe"
 
