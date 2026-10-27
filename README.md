@@ -108,8 +108,11 @@ $ kiyome doctor
 ```bash
 kiyome /dev/disk4                 # one pass, then eject
 kiyome --passes 3 /dev/sdb        # three passes
+kiyome /Volumes/USB               # a mounted volume stands for its whole disk
 kiyome --create /Volumes/USB      # leave a FAT32 or exFAT filesystem behind
 ```
+
+A disk is named by its device, such as `/dev/disk4`, or by any volume mounted from it, such as `/Volumes/USB`; kiyome works out the whole disk behind the volume and wipes all of it.
 
 kiyome follows the shared command-line contract of its family, described in [FAMILY.md](FAMILY.md).
 

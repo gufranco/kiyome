@@ -108,8 +108,11 @@ $ kiyome doctor
 ```bash
 kiyome /dev/disk4                 # 1パスのあと取り出し
 kiyome --passes 3 /dev/sdb        # 3パス
+kiyome /Volumes/USB               # マウント中のボリュームはディスク全体を指す
 kiyome --create /Volumes/USB      # FAT32またはexFATのファイルシステムを残す
 ```
+
+ディスクはデバイス名（`/dev/disk4` など）でも、そのディスクからマウントされたボリューム（`/Volumes/USB` など）でも指定できます。kiyome はボリュームの背後にあるディスク全体を突き止め、全体を消去します。
 
 kiyomeはファミリー共通のコマンドライン規約に従います。内容は[FAMILY.md](FAMILY.md)にあります。
 

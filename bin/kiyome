@@ -46,6 +46,9 @@ environment:
   the command line wins.
 
 notes:
+  A disk is named by its device, such as /dev/disk4, or by any volume mounted
+  from it, such as /Volumes/USB, which stands for the whole disk.
+
   Each pass writes per-chunk unique AES-CTR data, then 0xAA, 0x55, 0xFF and
   0x00, and reads every one back. A wrong byte is reported with the bit lines
   involved, which tells a stuck data line apart from worn media.

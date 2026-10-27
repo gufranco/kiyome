@@ -20,6 +20,12 @@ lines involved, which tells a stuck data line apart from worn media. Every
 chunk is timed against limits measured on the disk itself, so a drive that
 stalls is stopped and ejected before it damages the media.
 .PP
+A disk is named by its device, such as
+.IR /dev/disk4 ,
+or by any volume mounted from it, such as
+.IR /Volumes/USB ,
+which stands for the whole disk.
+.PP
 Before anything is written, kiyome prints what it is about to erase and asks
 for the device name to be typed back.
 .SH COMMANDS

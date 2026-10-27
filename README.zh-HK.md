@@ -108,8 +108,11 @@ $ kiyome doctor
 ```bash
 kiyome /dev/disk4                 # 一輪，然後退出
 kiyome --passes 3 /dev/sdb        # 三輪
+kiyome /Volumes/USB               # 已掛載的卷代表它所在的整個磁碟
 kiyome --create /Volumes/USB      # 最後留下 FAT32 或 exFAT 檔案系統
 ```
+
+磁碟可以用裝置名稱指定，例如 `/dev/disk4`，也可以用它掛載出的任何卷指定，例如 `/Volumes/USB`；kiyome 會找出卷背後的整個磁碟，並抹除整個磁碟。
 
 kiyome 遵循同系列工具共用的命令列約定，詳見 [FAMILY.md](FAMILY.md)。
 
