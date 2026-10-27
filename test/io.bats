@@ -129,7 +129,7 @@ exit \"\$status\""
   attach 2101248
 
   # Act
-  run wiping "CHUNK_TARGET_MS=1"
+  run wiping "CHUNK_TARGET_MS=1 SLOW_FACTOR=100"
 
   # Assert
   [[ "${status}" -eq 0 ]]
