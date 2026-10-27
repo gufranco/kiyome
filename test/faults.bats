@@ -23,7 +23,7 @@ teardown() {
 }
 
 wiping() {
-  printf 'y\n' | disk_test_run_env "${1:-}" kiyome "${DEVICE}"
+  printf '%s\n' "${DEVICE##*/}" | disk_test_run_env "${1:-}" kiyome "${DEVICE}"
 }
 
 fake_identity() {
@@ -102,7 +102,7 @@ probe_write='case "$*" in *pattern-*) true ;; *) false ;; esac'
   # Assert
   [[ "${status}" -eq 0 ]]
   [[ "${output}" == *"needed 2 attempts at offset"* ]]
-  [[ "${output}" == *"chunks only settled on a retry. This media is wearing out."* ]]
+  [[ "${output}" == *"chunks only settled on a retry. this media is wearing out."* ]]
 }
 
 @test "kiyome stops at once when the drive leaves the bus" {
@@ -128,7 +128,7 @@ probe_write='case "$*" in *pattern-*) true ;; *) false ;; esac'
   # Assert
   [[ "${status}" -eq 1 ]]
   [[ "${output}" == *"went silent for"* ]]
-  [[ "${output}" == *"The drive stopped answering mid-transfer"* ]]
+  [[ "${output}" == *"the drive stopped answering mid-transfer"* ]]
 }
 
 @test "kiyome stops when the disk fails while it is being measured" {
@@ -140,8 +140,8 @@ probe_write='case "$*" in *pattern-*) true ;; *) false ;; esac'
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"The write probe failed on the first sectors of"* ]]
-  [[ "${output}" == *"STOPPED: the disk failed while being measured, before the wipe started"* ]]
+  [[ "${output}" == *"the write probe failed on the first sectors of"* ]]
+  [[ "${output}" == *"stopped: the disk failed while being measured, before the wipe started"* ]]
 }
 
 @test "kiyome refuses media whose writes silently do not land" {
@@ -154,7 +154,7 @@ probe_write='case "$*" in *pattern-*) true ;; *) false ;; esac'
   # Assert
   [[ "${status}" -eq 1 ]]
   [[ "${output}" == *"is write protected, so nothing on it can be erased."* ]]
-  [[ "${output}" == *"The drive accepted a test write and the media kept its previous contents."* ]]
+  [[ "${output}" == *"the drive accepted a test write and the media kept its previous contents."* ]]
 }
 
 @test "kiyome stops when the drive leaves the bus during the test write" {

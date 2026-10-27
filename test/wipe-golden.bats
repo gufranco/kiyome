@@ -20,7 +20,7 @@ teardown() {
 }
 
 disk_wipe_run() {
-  printf 'y\n' | disk_test_run kiyome "${DEVICE}"
+  printf '%s\n' "${DEVICE##*/}" | disk_test_run kiyome "${DEVICE}"
 }
 
 @test "kiyome output matches the recorded golden run" {

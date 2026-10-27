@@ -19,24 +19,38 @@
 
 </div>
 
-一个命令，131 个测试，9 个 shell 模块，除 POSIX 系统外没有任何运行时依赖。`kiyome` 是日语"清め"，意为净化。它的姊妹工具 [kakikomi](https://github.com/gufranco/kakikomi) 用来写入磁盘镜像。
+一个命令，143 个测试，9 个 shell 模块，除 POSIX 系统外没有任何运行时依赖。`kiyome` 是日语"清め"，意为净化。它的姊妹工具 [kakikomi](https://github.com/gufranco/kakikomi) 用来写入磁盘镜像。
 
 ---
 
 ```console
-$ kiyome /dev/disk4
-Device: /dev/disk4
-Device reports itself as: SANDISK ULTRA
-This will ERASE all data on /dev/disk4. Continue? (y/N): y
-Measuring /dev/disk4 before wiping it, so every limit comes from this disk.
-Pass 1 of 1
-Writing per-chunk unique data over 4 chunks, timing every chunk
-Verify per-chunk unique data completed
-Verify 0xAA completed
-Verify 0x55 completed
-Verify 0xFF completed
-Verify 0x00 completed
-Device ejected successfully
+$ kiyome /dev/disk6
+
+Device: /dev/disk6, 64.0 MiB, DISK IMAGE
+        Everything on it is erased, including:
+          +67.1 MB disk6
+Plan:   1 pass of unique data, 0xAA, 0x55, 0xFF and 0x00, each read back
+        then eject
+
+Type disk6 to erase, or anything else to stop: disk6
+Unmounting /dev/disk6...
+Disk unmounted
+Measuring /dev/disk6 before wiping it, so every limit comes from this disk.
+Measured read: 222666 KiB/s sustained, 26ms to reach a sector, allowing 3x that before stopping.
+Measured write: 27028 KiB/s sustained, 27ms to reach a sector, allowing 3x that before stopping.
+Pass 1 of 1, writing per-chunk unique data 100%  438.4 MiB/s  0m00s left
+Pass 1 of 1, verifying per-chunk unique data 100%  237.9 MiB/s  0m00s left
+Pass 1 of 1, writing 0xAA 100%  888.9 MiB/s  0m00s left
+Pass 1 of 1, verifying 0xAA 100%  400.0 MiB/s  0m00s left
+Pass 1 of 1, writing 0x55 100%  941.2 MiB/s  0m00s left
+Pass 1 of 1, verifying 0x55 100%  240.6 MiB/s  0m00s left
+Pass 1 of 1, writing 0xFF 100%  888.9 MiB/s  0m00s left
+Pass 1 of 1, verifying 0xFF 100%  390.2 MiB/s  0m00s left
+Pass 1 of 1, writing 0x00 100%  711.1 MiB/s  0m00s left
+Pass 1 of 1, verifying 0x00 100%  280.7 MiB/s  0m00s left
+Wiped /dev/disk6: every byte of every pattern read back as written.
+Ejecting /dev/disk6...
+Ejected. /dev/disk6 is safe to remove.
 ```
 
 <a id="quick-start"></a>
@@ -49,8 +63,8 @@ Device ejected successfully
 |:-----|:----|:--------|
 | POSIX `sh`、`dd`、`cmp`、`od` | 工具本身 | macOS 和 Linux 已预装，不需要 `bash` |
 | `openssl` | 每块各不相同的图案 | 已预装 |
-| `newfs_msdos`，或 `sfdisk` 和 `mkfs.fat` | macOS 或 Linux 上的 `CREATE=y` | macOS 已预装；Linux 上为 `apt install fdisk dosfstools` |
-| `mkfs.exfat` | Linux 上对超过 32 GiB 的磁盘使用 `CREATE=y` | `apt install exfatprogs` |
+| `newfs_msdos`，或 `sfdisk` 和 `mkfs.fat` | macOS 或 Linux 上的 `--create` | macOS 已预装；Linux 上为 `apt install fdisk dosfstools` |
+| `mkfs.exfat` | Linux 上对超过 32 GiB 的磁盘使用 `--create` | `apt install exfatprogs` |
 
 ### 安装
 
@@ -66,7 +80,7 @@ cd kiyome
 make install
 ```
 
-`make install` 把工具复制到 `~/.local` 下，并把 `kiyome` 放进 `~/.local/bin`；设置 `PREFIX` 可以改变位置。
+`make install` 把工具、man 手册以及 bash、zsh、fish 补全复制到 `~/.local` 下，并把 `kiyome` 放进 `~/.local/bin`；设置 `PREFIX` 可以改变位置。Homebrew formula 安装的是同样的文件。
 
 ### 验证
 
@@ -78,16 +92,26 @@ $ kiyome doctor
 
 | 命令 | 用途 |
 |:--------|:--------|
-| `kiyome <device\|mount_point>` | 用五种经过校验的图案覆盖该磁盘，然后弹出 |
+| `kiyome [options] <device\|mount_point>` | 用五种经过校验的图案覆盖该磁盘，然后弹出 |
 | 不带参数的 `kiyome` | 在终端中运行时，询问磁盘和轮数 |
 | `kiyome doctor` | 列出 kiyome 需要的工具以及是否已安装 |
 | `kiyome version`、`kiyome help` | 显示版本或完整用法 |
 
-| 变量 | 效果 |
-|:---------|:-------|
-| `PASSES=N` | 把五种图案重复 N 次，默认 1 次 |
-| `CREATE=y` | 最后留下一个全新的 FAT32 或 exFAT 文件系统，而不是空白磁盘 |
-| `ALLOW_INTERNAL=y` | 允许内置磁盘。运行中系统所在的磁盘始终被拒绝 |
+| 选项 | 效果 |
+|:-------|:-------|
+| `--passes N` | 把五种图案重复 N 次，默认 1 次 |
+| `--create` | 最后留下一个全新的 FAT32 或 exFAT 文件系统，而不是空白磁盘 |
+| `--allow-internal` | 允许内置磁盘。运行中系统所在的磁盘始终被拒绝 |
+
+也可以写成 `--passes=3`，`--` 表示选项结束。环境变量 `PASSES=N`、`CREATE=y` 和 `ALLOW_INTERNAL=y` 设置的是同样的选项，命令行上的选项优先。
+
+```bash
+kiyome /dev/disk4                 # 一遍，然后弹出
+kiyome --passes 3 /dev/sdb        # 三遍
+kiyome --create /Volumes/USB      # 最后留下 FAT32 或 exFAT 文件系统
+```
+
+kiyome 遵循同系列工具共用的命令行约定，详见 [FAMILY.md](FAMILY.md)。
 
 <a id="how-it-works"></a>
 
@@ -130,8 +154,8 @@ kiyome 先测量磁盘自身的速度，再据此给每次传输设定期限。�
 
 | 命令 | 说明 |
 |:--------|:------------|
-| `make lint` | 对每个脚本运行 ShellCheck，并检查没有函数被重复定义 |
-| `make test` | 在系统 `sh` 下运行 131 个 `bats` 测试 |
+| `make lint` | 对每个脚本和补全运行 ShellCheck，用 mandoc 检查 man 手册，并检查没有函数被重复定义 |
+| `make test` | 在系统 `sh` 下运行 143 个 `bats` 测试 |
 | `make test-all` | 在每个已安装的 shell 下运行同样的测试 |
 | `make test-linux` | 从 Mac 在特权 Ubuntu 容器中运行同样的测试 |
 | `make coverage` | 在这台 Mac 和同一容器中用 bashcov 测量行覆盖率并合并，CI 要求 100% |

@@ -29,16 +29,21 @@ disk_wipe_usage() {
 kiyome - overwrite a disk with five verified patterns, reporting any bad bit line
 
 usage:
-  kiyome                         ask for the disk and the number of passes
-  kiyome <device|mount_point>    wipe that disk
-  kiyome doctor
-  kiyome version
-  kiyome help
+  kiyome                              ask for the disk and the number of passes
+  kiyome [options] <device|mount_point>
+                                      wipe that disk
+  kiyome doctor                       check the tools kiyome needs
+  kiyome version                      print the version
+  kiyome help                         print this page
+
+options:
+  --passes N          repeat the five patterns N times (default 1)
+  --create            leave a fresh FAT or exFAT filesystem behind
+  --allow-internal    allow an internal disk. the system disk is always refused
 
 environment:
-  PASSES=N          repeat the five patterns N times. 1 by default
-  CREATE=y          leave a fresh FAT or exFAT filesystem behind
-  ALLOW_INTERNAL=y  allow an internal disk. the system disk is always refused
+  PASSES=N, CREATE=y and ALLOW_INTERNAL=y set the same options. an option on
+  the command line wins.
 
 notes:
   Each pass writes per-chunk unique AES-CTR data, then 0xAA, 0x55, 0xFF and
@@ -48,64 +53,93 @@ notes:
 examples:
   kiyome /dev/disk4
   kiyome /Volumes/USB
-  PASSES=3 kiyome /dev/sdb
-  CREATE=y kiyome /dev/disk4
+  kiyome --passes 3 /dev/sdb
+  kiyome --create /dev/disk4
 USAGE
+}
+
+disk_option_flag() {
+  case "$1" in
+    --create) CREATE=y ;;
+    --allow-internal) ALLOW_INTERNAL=y ;;
+    *) return 1 ;;
+  esac
+  return 0
+}
+
+disk_option_value() {
+  PASSES="$2"
+  return 0
 }
 
 disk_wipe_ask() {
   disk_wk_disk="$(disk_pick_single "Wipe which disk? Number or name: ")" || return 1
   if [ -z "${PASSES:-}" ]; then
     PASSES="$(disk_prompt "Passes" 1)" || return 1
-    export PASSES
   fi
   disk_wipe_run "${disk_wk_disk}"
 }
 
-disk_wipe_validate() {
-  if ! disk_is_uint "$2" || [ "$2" -lt 1 ]; then
-    disk_error "Invalid PASSES value: $2 (must be a positive integer)"
-    return 1
-  fi
-  if [ ! -b "$1" ] && [ ! -c "$1" ]; then
-    disk_error "Device not found or invalid: $1"
-    return 1
-  fi
-  if ! disk_cmd_exists openssl; then
-    disk_error "openssl is required to build the per-chunk unique pattern"
+disk_wipe_check_passes() {
+  if ! disk_is_uint "$1" || [ "$1" -lt 1 ]; then
+    disk_error "--passes must be a whole number of 1 or more, got: $1"
     return 1
   fi
   return 0
 }
 
-disk_wipe_confirm() {
-  printf 'This will ERASE all data on %s. Continue? (y/N): ' "$1"
-  disk_wc_answer=""
-  IFS= read -r disk_wc_answer
-  if [ "${disk_wc_answer}" != "y" ]; then
-    disk_warning "Operation cancelled"
+disk_wipe_validate() {
+  if [ ! -b "$1" ] && [ ! -c "$1" ]; then
+    disk_error "device not found or invalid: $1."
+    return 1
+  fi
+  if ! disk_cmd_exists openssl; then
+    disk_error "openssl is required to build the per-chunk unique pattern."
     return 1
   fi
   return 0
 }
 
 disk_wipe_identify() {
-  disk_wi_identity="$(disk_identity "$1")"
-  DISK_FAMILY="$(disk_family_of "${disk_wi_identity}")"
-  [ -n "${disk_wi_identity}" ] && disk_info "Device reports itself as: ${disk_wi_identity}"
-  [ -n "${DISK_FAMILY}" ] && disk_info "Recognised as ${DISK_FAMILY} media, which only sets the volume label."
+  DISK_IDENTITY="$(disk_identity "$1")"
+  DISK_FAMILY="$(disk_family_of "${DISK_IDENTITY}")"
   return 0
+}
+
+disk_wipe_plan() {
+  disk_wpl_noun="passes"
+  [ "$1" -eq 1 ] && disk_wpl_noun="pass"
+  disk_info "Plan:   $1 ${disk_wpl_noun} of unique data, 0xAA, 0x55, 0xFF and 0x00, each read back"
+  if [ "${CREATE:-}" = "y" ]; then
+    disk_info "        then a fresh FAT or exFAT filesystem, then eject"
+  else
+    disk_info "        then eject"
+  fi
+}
+
+disk_wipe_summary() {
+  printf '\n'
+  disk_ws_human="$(disk_human "${DISK_SIZE}")"
+  disk_info "Device: $1, ${disk_ws_human}, ${DISK_IDENTITY:-unnamed device}"
+  [ -n "${DISK_FAMILY}" ] && disk_info "        ${DISK_FAMILY} media, which only sets the volume label"
+  disk_ws_parts="$(disk_partitions_text "$1")"
+  if [ -n "${disk_ws_parts}" ]; then
+    disk_info "        Everything on it is erased, including:"
+    printf '%s\n' "${disk_ws_parts}"
+  fi
+  disk_wipe_plan "$2"
+  printf '\n'
 }
 
 disk_wipe_size() {
   DISK_SIZE="$(disk_size_bytes "$1")"
   if ! disk_is_uint "${DISK_SIZE}" || [ "${DISK_SIZE}" -eq 0 ]; then
-    disk_error "Unable to determine disk size for $1"
+    disk_error "unable to determine disk size for $1."
     return 1
   fi
   DISK_SECTOR="$(disk_sector_bytes "$1")"
   if [ $((DISK_SIZE % DISK_SECTOR)) -ne 0 ]; then
-    disk_warning "Device size is not a whole number of sectors. Skipping the last $((DISK_SIZE % DISK_SECTOR)) bytes."
+    disk_warning "device size is not a whole number of sectors. skipping the last $((DISK_SIZE % DISK_SECTOR)) bytes."
     DISK_SIZE=$((DISK_SIZE - DISK_SIZE % DISK_SECTOR))
   fi
   disk_set_ceiling "${DISK_SIZE}"
@@ -122,63 +156,51 @@ disk_wipe_landing() {
   disk_wl_detail="$(disk_get_error)"
   disk_wl_class="$(disk_error_class "${disk_wl_detail}")"
   if [ "${disk_wl_status}" -eq 2 ] && [ "${disk_wl_class}" = "bus" ]; then
-    disk_fault "$1" "$1 stopped answering during the single-sector write test"
+    disk_fault "$1" "$1 stopped answering during the single-sector write test."
     return 1
   fi
   return 0
 }
 
 disk_wipe_passes() {
-  disk_info "Cleaning $1..."
   disk_wp_index=1
   while [ "${disk_wp_index}" -le "$3" ]; do
     disk_execute_pass "$1" "$2" "${disk_wp_index}" "$3" || return 1
     disk_wp_index=$((disk_wp_index + 1))
   done
+  disk_success "Wiped $1: every byte of every pattern read back as written."
   return 0
 }
 
 disk_wipe_eject() {
-  disk_info "Ejecting device..."
-  disk_we_os="$(disk_os)"
-  case "${disk_we_os}" in
-    Darwin)
-      case "${DISK_FAMILY}" in
-        floppy | superdisk)
-          if disk_release "$1"; then
-            disk_success "Device unmounted. This drive has no software eject, so remove the disk by hand."
-          else
-            disk_warning "Device is still mounted. Remove the disk by hand once it is idle."
-          fi
-          ;;
-        *)
-          if disk_bounded 30 sudo diskutil eject "$1" >/dev/null 2>&1; then
-            disk_success "Device ejected successfully"
-          else
-            disk_warning "Failed to eject device. The wipe already finished, so it is safe to remove."
-          fi
-          ;;
-      esac
-      ;;
-    Linux)
-      sync
-      if sudo eject "$1" 2>/dev/null; then
-        disk_success "Device ejected successfully"
+  disk_info "Ejecting $1..."
+  case "${DISK_FAMILY}" in
+    floppy | superdisk)
+      if disk_release "$1" >/dev/null 2>&1; then
+        disk_success "Done. This drive has no software eject, so take the disk out now."
       else
-        disk_warning "Failed to eject device (may not support eject)"
+        disk_warning "$1 is still mounted. remove the disk by hand once it is idle."
       fi
       ;;
-    *) ;;
+    *)
+      sync
+      if disk_bounded 30 sudo diskutil eject "$1" >/dev/null 2>&1 || disk_bounded 30 sudo eject "$1" >/dev/null 2>&1; then
+        disk_success "Ejected. $1 is safe to remove."
+      else
+        disk_warning "$1 did not eject. the wipe already finished, so remove it once the light stops."
+      fi
+      ;;
   esac
   return 0
 }
 
 disk_wipe_prepare() {
-  disk_wipe_validate "$1" "$2" || return 1
+  disk_wipe_validate "$1" || return 1
   disk_wipe_identify "$1"
-  disk_tune
-  disk_wipe_confirm "$1" || return 1
   disk_wipe_size "$1" || return 1
+  disk_wipe_summary "$1" "$2"
+  disk_confirm_names "$1" erase || return 1
+  disk_tune
   disk_wpr_writable=0
   disk_writable_media "$1" || disk_wpr_writable="$?"
   if [ "${disk_wpr_writable}" -eq 1 ]; then
@@ -197,26 +219,54 @@ disk_wipe_main() {
     help | -h | --help) disk_wipe_usage ;;
     version | -V | --version) disk_cli_version ;;
     doctor) disk_doctor ;;
-    '')
-      if disk_cli_interactive; then
-        disk_wipe_ask
-        return "$?"
-      fi
-      disk_cli_hint "no disk given"
-      return 1
-      ;;
-    -*)
-      disk_cli_hint "unknown option '$1'"
-      return 1
-      ;;
-    *) disk_wipe_run "$@" ;;
+    *) disk_wipe_parse "$@" ;;
   esac
 }
 
+disk_wipe_parse() {
+  DISK_VALUE_OPTIONS="--passes"
+  disk_wa_left="$#"
+  disk_wa_literal=0
+  while [ "${disk_wa_left}" -gt 0 ]; do
+    disk_wa_arg="$1"
+    shift
+    disk_wa_left=$((disk_wa_left - 1))
+    if [ "${disk_wa_literal}" -eq 1 ] || ! disk_cli_is_option "${disk_wa_arg}"; then
+      set -- "$@" "${disk_wa_arg}"
+    elif [ "${disk_wa_arg}" = "--" ]; then
+      disk_wa_literal=1
+    else
+      disk_cli_option "${disk_wa_arg}" "${disk_wa_left}" "${1:-}" || return 1
+      if [ "${DISK_CLI_USED}" -eq 1 ]; then
+        shift
+        disk_wa_left=$((disk_wa_left - 1))
+      fi
+    fi
+  done
+  disk_wipe_start "$@"
+}
+
+disk_wipe_start() {
+  if [ "$#" -gt 1 ]; then
+    disk_cli_hint "unexpected extra argument '$2'"
+    return 1
+  fi
+  if [ "$#" -eq 1 ]; then
+    disk_wipe_run "$1"
+    return "$?"
+  fi
+  if disk_cli_interactive; then
+    disk_wipe_ask
+    return "$?"
+  fi
+  disk_cli_hint "no disk given"
+  return 1
+}
+
 disk_wipe_run() {
+  disk_wipe_check_passes "${PASSES:-1}" || return 1
   disk_wm_disk="$(disk_resolve "$1")" || return 1
   disk_refuse_target "${disk_wm_disk}" || return 1
-  disk_info "Device: ${disk_wm_disk}"
   DISK_ERRFILE=""
   DISK_LAST_ERROR=""
   DISK_LAST_DETAIL=""

@@ -101,7 +101,7 @@ disk_eligible() {
 disk_pick_targets() {
   disk_pt_list="$(disk_eligible)"
   if [ -z "${disk_pt_list}" ]; then
-    disk_error "No external or removable disk is attached." >&2
+    disk_error "no external or removable disk is attached." >&2
     return 1
   fi
   disk_pt_index=0
@@ -134,7 +134,7 @@ disk_pick_one() {
       return 0
     fi
   done
-  disk_error "Not a listed number or disk: $1"
+  disk_error "not a listed number or disk: $1."
   return 1
 }
 
@@ -142,12 +142,75 @@ disk_pick_one() {
 disk_refuse_target() {
   disk_rt_boot="$(disk_boot_disks)"
   if disk_listed "$1" "${disk_rt_boot}"; then
-    disk_error "STOPPED: $1 holds the running system, so it is never wiped."
+    disk_error "stopped: $1 holds the running system, so it is never wiped."
     return 1
   fi
   if [ "${ALLOW_INTERNAL:-}" != "y" ] && disk_is_internal "$1"; then
-    disk_error "STOPPED: $1 is an internal disk. Set ALLOW_INTERNAL=y to wipe it on purpose."
+    disk_error "stopped: $1 is an internal disk. use --allow-internal to wipe it on purpose."
     return 1
+  fi
+  return 0
+}
+
+disk_partitions_text() {
+  disk_pa_os="$(disk_os)"
+  case "${disk_pa_os}" in
+    Darwin)
+      disk_pa_list="$(diskutil list "$1" 2>/dev/null)"
+      printf '%s\n' "${disk_pa_list}" | awk 'NR > 2 && NF > 3 { $1 = ""; sub(/^ +/, ""); print "          " $0 }'
+      ;;
+    Linux)
+      disk_pa_list="$(lsblk -nro NAME,SIZE,FSTYPE,LABEL "$1" 2>/dev/null)"
+      printf '%s\n' "${disk_pa_list}" | awk 'NR > 1 { print "          " $0 }'
+      ;;
+    *) ;;
+  esac
+  return 0
+}
+
+disk_confirm_names() {
+  disk_cn_expected=""
+  for disk_cn_target in $1; do
+    disk_cn_expected="${disk_cn_expected}${disk_cn_expected:+ }${disk_cn_target##*/}"
+  done
+  printf 'Type %s to %s, or anything else to stop: ' "${disk_cn_expected}" "$2" >&2
+  disk_cn_answer=""
+  IFS= read -r disk_cn_answer
+  disk_cn_given=""
+  for disk_cn_word in ${disk_cn_answer}; do
+    disk_cn_given="${disk_cn_given}${disk_cn_given:+ }${disk_cn_word##*/}"
+  done
+  if [ "${disk_cn_given}" != "${disk_cn_expected}" ]; then
+    disk_warning "cancelled, nothing was touched."
+    return 1
+  fi
+  return 0
+}
+
+disk_progress() {
+  disk_pg_done="$2"
+  disk_pg_total="$3"
+  [ "${disk_pg_total}" -gt 0 ] || return 0
+  disk_pg_percent=$((disk_pg_done * 100 / disk_pg_total))
+  disk_pg_now="$(disk_now_ms)"
+  disk_pg_ms=$((disk_pg_now - $4))
+  [ "${disk_pg_ms}" -gt 0 ] || disk_pg_ms=1
+  disk_pg_rate=$((disk_pg_done * 1000 / disk_pg_ms))
+  disk_pg_eta=0
+  [ "${disk_pg_rate}" -gt 0 ] && disk_pg_eta=$(((disk_pg_total - disk_pg_done) / disk_pg_rate))
+  disk_pg_speed="$(disk_human "${disk_pg_rate}")"
+  disk_pg_minutes=$((disk_pg_eta / 60))
+  disk_pg_seconds=$((disk_pg_eta % 60))
+  disk_pg_line="$(printf '%s %3d%%  %s/s  %dm%02ds left' "$1" "${disk_pg_percent}" "${disk_pg_speed}" "${disk_pg_minutes}" "${disk_pg_seconds}")"
+  if [ -t 2 ]; then
+    printf '\r%s   ' "${disk_pg_line}" >&2
+    [ "${disk_pg_done}" -ge "${disk_pg_total}" ] && printf '\n' >&2
+    return 0
+  fi
+  disk_pg_step=$((disk_pg_percent / 10))
+  if [ "${disk_pg_step}" -gt "${DISK_PROGRESS_STEP}" ] || [ "${disk_pg_done}" -ge "${disk_pg_total}" ]; then
+    DISK_PROGRESS_STEP="${disk_pg_step}"
+    disk_info "${disk_pg_line}"
   fi
   return 0
 }

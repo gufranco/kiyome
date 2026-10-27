@@ -50,11 +50,11 @@ disk_unmount_for_write() {
       return 0
       ;;
     2)
-      disk_error "Unable to read the mount state of $1, so this stops here"
+      disk_error "unable to read the mount state of $1, so this stops here."
       return 1
       ;;
     *)
-      disk_error "Disk is still mounted, so writing to it would corrupt the mounted volume"
+      disk_error "disk is still mounted, so writing to it would corrupt the mounted volume."
       return 1
       ;;
   esac
@@ -69,9 +69,9 @@ disk_eject_now() {
         return 0
       fi
       if disk_bounded 20 sudo diskutil unmountDisk force "$1" >/dev/null 2>&1; then
-        disk_warning "The drive refused to eject. The volume is unmounted, so nothing else will touch it."
+        disk_warning "the drive refused to eject. the volume is unmounted, so nothing else will touch it."
       else
-        disk_error "The drive answered neither eject nor unmount within the time allowed."
+        disk_error "the drive answered neither eject nor unmount within the time allowed."
       fi
       ;;
     Linux)
@@ -79,11 +79,11 @@ disk_eject_now() {
         disk_success "Cartridge ejected."
         return 0
       fi
-      disk_error "The drive did not eject within the time allowed."
+      disk_error "the drive did not eject within the time allowed."
       ;;
     *) ;;
   esac
-  disk_error "Cut power to the drive before doing anything else with it. Do not press eject repeatedly."
+  disk_error "cut power to the drive before doing anything else with it. do not press eject repeatedly."
   return 1
 }
 
@@ -256,10 +256,10 @@ disk_write_protect_advice() {
 }
 
 disk_report_write_protected() {
-  disk_error "STOPPED: $1 is write protected, so nothing on it can be $3."
+  disk_error "stopped: $1 is write protected, so nothing on it can be $3."
   case "$2" in
-    flag) disk_error "The drive reports this media as read-only." ;;
-    silent) disk_error "The drive accepted a test write and the media kept its previous contents." ;;
+    flag) disk_error "the drive reports this media as read-only." ;;
+    silent) disk_error "the drive accepted a test write and the media kept its previous contents." ;;
     *) ;;
   esac
   disk_write_protect_advice
@@ -268,19 +268,19 @@ disk_report_write_protected() {
 
 disk_head_crash_advice() {
   if [ "$3" = "stall" ]; then
-    disk_error "The drive stopped answering mid-transfer, which is a head retrying a seek, not slow data."
+    disk_error "the drive stopped answering mid-transfer, which is a head retrying a seek, not slow data."
   fi
   if [ "$1" -eq 1 ]; then
-    disk_error "The drive dropped off the bus mid-operation, which is a hardware fault, not bad data."
+    disk_error "the drive dropped off the bus mid-operation, which is a hardware fault, not bad data."
   fi
   if disk_head_crash_family && { [ "$1" -eq 1 ] || [ "$2" != "other" ] || [ -n "$3" ]; }; then
-    disk_error "On a ${DISK_FAMILY} drive this is the click of death: the head is out of alignment."
-    disk_error "The drive will damage every cartridge you insert next, and this cartridge will damage every drive."
-    disk_error "Retire both. Do not test this cartridge in a working drive to confirm."
-    disk_error "One stall is the whole verdict. There is no reading it again to be sure."
+    disk_error "on a ${DISK_FAMILY} drive this is the click of death: the head is out of alignment."
+    disk_error "the drive will damage every cartridge you insert next, and this cartridge will damage every drive."
+    disk_error "retire both. do not test this cartridge in a working drive to confirm."
+    disk_error "one stall is the whole verdict. there is no reading it again to be sure."
     return 0
   fi
-  disk_error "A drive that fails this way can damage the next media it is given."
+  disk_error "a drive that fails this way can damage the next media it is given."
   return 0
 }
 
@@ -292,11 +292,11 @@ disk_fault() {
   [ -z "${disk_ft_detail}" ] && disk_ft_detail="${DISK_LAST_DETAIL:-}"
   disk_ft_class="$(disk_error_class "${disk_ft_detail}")"
 
-  disk_error "STOPPED: $2"
+  disk_error "stopped: $2"
   [ -n "${disk_ft_detail}" ] && disk_error "dd said: ${disk_ft_detail}"
   case "${disk_ft_detail}" in
     *[Rr]ead-only* | *"Permission denied"* | *EROFS*)
-      disk_error "That reads as write protection rather than worn media."
+      disk_error "that reads as write protection rather than worn media."
       disk_write_protect_advice
       ;;
     *) ;;
@@ -306,7 +306,7 @@ disk_fault() {
   if [ "${disk_ft_gone}" -eq 1 ]; then
     disk_error "${disk_ft_disk} is no longer on the bus, so there is nothing left to eject by software."
   else
-    disk_error "Ejecting immediately rather than continuing."
+    disk_error "ejecting immediately rather than continuing."
     disk_bounded 20 sync >/dev/null 2>&1
     disk_eject_now "${disk_ft_disk}"
   fi

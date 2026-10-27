@@ -19,24 +19,38 @@
 
 </div>
 
-コマンドは1つ、テストは131件、シェルのモジュールは9個で、POSIXシステム以外に実行時の依存はありません。`kiyome`は日本語の「清め」です。姉妹ツールの[kakikomi](https://github.com/gufranco/kakikomi)はディスクイメージを書き込みます。
+コマンドは1つ、テストは143件、シェルのモジュールは9個で、POSIXシステム以外に実行時の依存はありません。`kiyome`は日本語の「清め」です。姉妹ツールの[kakikomi](https://github.com/gufranco/kakikomi)はディスクイメージを書き込みます。
 
 ---
 
 ```console
-$ kiyome /dev/disk4
-Device: /dev/disk4
-Device reports itself as: SANDISK ULTRA
-This will ERASE all data on /dev/disk4. Continue? (y/N): y
-Measuring /dev/disk4 before wiping it, so every limit comes from this disk.
-Pass 1 of 1
-Writing per-chunk unique data over 4 chunks, timing every chunk
-Verify per-chunk unique data completed
-Verify 0xAA completed
-Verify 0x55 completed
-Verify 0xFF completed
-Verify 0x00 completed
-Device ejected successfully
+$ kiyome /dev/disk6
+
+Device: /dev/disk6, 64.0 MiB, DISK IMAGE
+        Everything on it is erased, including:
+          +67.1 MB disk6
+Plan:   1 pass of unique data, 0xAA, 0x55, 0xFF and 0x00, each read back
+        then eject
+
+Type disk6 to erase, or anything else to stop: disk6
+Unmounting /dev/disk6...
+Disk unmounted
+Measuring /dev/disk6 before wiping it, so every limit comes from this disk.
+Measured read: 222666 KiB/s sustained, 26ms to reach a sector, allowing 3x that before stopping.
+Measured write: 27028 KiB/s sustained, 27ms to reach a sector, allowing 3x that before stopping.
+Pass 1 of 1, writing per-chunk unique data 100%  438.4 MiB/s  0m00s left
+Pass 1 of 1, verifying per-chunk unique data 100%  237.9 MiB/s  0m00s left
+Pass 1 of 1, writing 0xAA 100%  888.9 MiB/s  0m00s left
+Pass 1 of 1, verifying 0xAA 100%  400.0 MiB/s  0m00s left
+Pass 1 of 1, writing 0x55 100%  941.2 MiB/s  0m00s left
+Pass 1 of 1, verifying 0x55 100%  240.6 MiB/s  0m00s left
+Pass 1 of 1, writing 0xFF 100%  888.9 MiB/s  0m00s left
+Pass 1 of 1, verifying 0xFF 100%  390.2 MiB/s  0m00s left
+Pass 1 of 1, writing 0x00 100%  711.1 MiB/s  0m00s left
+Pass 1 of 1, verifying 0x00 100%  280.7 MiB/s  0m00s left
+Wiped /dev/disk6: every byte of every pattern read back as written.
+Ejecting /dev/disk6...
+Ejected. /dev/disk6 is safe to remove.
 ```
 
 <a id="quick-start"></a>
@@ -49,8 +63,8 @@ Device ejected successfully
 |:-----|:----|:--------|
 | POSIX `sh`、`dd`、`cmp`、`od` | ツール本体 | macOSとLinuxにプリインストールされています。`bash`は不要です |
 | `openssl` | チャンクごとに異なるパターン | プリインストールされています |
-| `newfs_msdos`、または`sfdisk`と`mkfs.fat` | macOSまたはLinuxでの`CREATE=y` | macOSにはプリインストール済み。Linuxでは`apt install fdisk dosfstools` |
-| `mkfs.exfat` | Linuxで32GiBを超えるディスクへの`CREATE=y` | `apt install exfatprogs` |
+| `newfs_msdos`、または`sfdisk`と`mkfs.fat` | macOSまたはLinuxでの`--create` | macOSにはプリインストール済み。Linuxでは`apt install fdisk dosfstools` |
+| `mkfs.exfat` | Linuxで32GiBを超えるディスクへの`--create` | `apt install exfatprogs` |
 
 ### インストール
 
@@ -66,7 +80,7 @@ cd kiyome
 make install
 ```
 
-`make install`はツールを`~/.local`の下にコピーし、`kiyome`を`~/.local/bin`に置きます。場所は`PREFIX`で変えられます。
+`make install`はツールとmanページ、bash・zsh・fishの補完を`~/.local`の下にコピーし、`kiyome`を`~/.local/bin`に置きます。場所は`PREFIX`で変えられます。Homebrewのformulaも同じファイルをインストールします。
 
 ### 確認
 
@@ -78,16 +92,26 @@ $ kiyome doctor
 
 | コマンド | 用途 |
 |:--------|:--------|
-| `kiyome <device\|mount_point>` | そのディスクを検証付きの5つのパターンで上書きし、取り出します |
+| `kiyome [options] <device\|mount_point>` | そのディスクを検証付きの5つのパターンで上書きし、取り出します |
 | 引数なしの`kiyome` | ターミナルで実行すると、ディスクとパスの回数を尋ねます |
 | `kiyome doctor` | kiyomeが必要とするツールと、インストール状況を一覧表示します |
 | `kiyome version`、`kiyome help` | バージョンまたは使い方の全文を表示します |
 
-| 変数 | 効果 |
-|:---------|:-------|
-| `PASSES=N` | 5つのパターンをN回繰り返します。既定は1回です |
-| `CREATE=y` | 空のディスクではなく、新しいFAT32またはexFATのファイルシステムを残します |
-| `ALLOW_INTERNAL=y` | 内蔵ディスクを許可します。動作中のシステムがあるディスクは常に拒否されます |
+| オプション | 効果 |
+|:-------|:-------|
+| `--passes N` | 5つのパターンをN回繰り返します。既定は1回です |
+| `--create` | 空のディスクではなく、新しいFAT32またはexFATのファイルシステムを残します |
+| `--allow-internal` | 内蔵ディスクを許可します。動作中のシステムがあるディスクは常に拒否されます |
+
+`--passes=3`の形も使え、`--`でオプションが終わります。環境変数`PASSES=N`、`CREATE=y`、`ALLOW_INTERNAL=y`も同じ設定になり、コマンドラインのオプションが優先されます。
+
+```bash
+kiyome /dev/disk4                 # 1パスのあと取り出し
+kiyome --passes 3 /dev/sdb        # 3パス
+kiyome --create /Volumes/USB      # FAT32またはexFATのファイルシステムを残す
+```
+
+kiyomeはファミリー共通のコマンドライン規約に従います。内容は[FAMILY.md](FAMILY.md)にあります。
 
 <a id="how-it-works"></a>
 
@@ -130,8 +154,8 @@ kiyomeはまずディスク自体の速度を測り、その値から各転送�
 
 | コマンド | 説明 |
 |:--------|:------------|
-| `make lint` | すべてのスクリプトにShellCheckを実行し、関数が二重に定義されていないことを確認します |
-| `make test` | システムの`sh`で131件の`bats`テスト |
+| `make lint` | すべてのスクリプトと補完にShellCheck、manページにmandocを実行し、関数が二重に定義されていないことを確認します |
+| `make test` | システムの`sh`で143件の`bats`テスト |
 | `make test-all` | インストール済みのすべてのシェルで同じテスト |
 | `make test-linux` | Macから、特権付きUbuntuコンテナで同じテスト |
 | `make coverage` | このMacと同じコンテナでbashcovによる行カバレッジを測定して統合します。CIは100%を必須にします |

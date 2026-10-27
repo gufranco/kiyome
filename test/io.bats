@@ -31,7 +31,7 @@ attach() {
 }
 
 wiping() {
-  printf 'y\n' | disk_test_run_env "${1:-}" kiyome "${DEVICE}"
+  printf '%s\n' "${DEVICE##*/}" | disk_test_run_env "${1:-}" kiyome "${DEVICE}"
 }
 
 picking() {
@@ -55,7 +55,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"The drive refused to eject. The volume is unmounted, so nothing else will touch it."* ]]
+  [[ "${output}" == *"the drive refused to eject. the volume is unmounted, so nothing else will touch it."* ]]
 }
 
 @test "kiyome reads a refused write as write protection" {
@@ -67,7 +67,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"That reads as write protection rather than worn media."* ]]
+  [[ "${output}" == *"that reads as write protection rather than worn media."* ]]
 }
 
 @test "kiyome says when the drive is gone from the bus after a fault" {
@@ -82,7 +82,7 @@ exec \"\$REAL\" \"\$@\""
   # Assert
   [[ "${status}" -eq 1 ]]
   [[ "${output}" == *"is no longer on the bus, so there is nothing left to eject by software."* ]]
-  [[ "${output}" == *"The drive dropped off the bus mid-operation, which is a hardware fault, not bad data."* ]]
+  [[ "${output}" == *"the drive dropped off the bus mid-operation, which is a hardware fault, not bad data."* ]]
 }
 
 @test "kiyome stops at once when a transfer is interrupted" {
@@ -94,7 +94,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"STOPPED: interrupted during write chunk"* ]]
+  [[ "${output}" == *"stopped: interrupted during write chunk"* ]]
 }
 
 @test "kiyome does not trust a transfer that moved fewer bytes" {
@@ -145,7 +145,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"Unable to build the 0xFF reference pattern"* ]]
+  [[ "${output}" == *"unable to build the 0xFF reference pattern"* ]]
 }
 
 @test "kiyome stops when the unique pattern cannot be built" {
@@ -158,7 +158,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"Unable to build the unique pattern for chunk 1 of"* ]]
+  [[ "${output}" == *"unable to build the unique pattern for chunk 1 of"* ]]
 }
 
 @test "kiyome stops when the pattern key cannot be generated" {
@@ -171,7 +171,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"Unable to generate the key for the unique pattern"* ]]
+  [[ "${output}" == *"unable to generate the key for the unique pattern"* ]]
 }
 
 @test "kiyome bypasses the page cache when direct I/O works" {
@@ -212,7 +212,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"kiyome: No external or removable disk is attached."* ]]
+  [[ "${output}" == *"kiyome: no external or removable disk is attached."* ]]
 }
 
 @test "kiyome reports a filesystem it could not create" {
@@ -225,7 +225,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"kiyome: Failed to format floppy"* ]]
+  [[ "${output}" == *"kiyome: failed to format floppy."* ]]
 }
 
 @test "kiyome ejects the drive once the wipe finishes on Linux" {
@@ -238,7 +238,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  [[ "${output}" == *"Device ejected successfully"* ]]
+  [[ "${output}" == *"Ejected. ${DEVICE} is safe to remove."* ]]
 }
 
 @test "kiyome ejects the cartridge after a fault on Linux" {
@@ -264,7 +264,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  [[ "${output}" == *"Verify per-chunk unique data completed"* ]]
+  [[ "${output}" == *"verifying per-chunk unique data 100%"* ]]
 }
 
 @test "kiyome leaves a floppy that stays mounted for the hand to remove" {
@@ -283,5 +283,5 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  [[ "${output}" == *"Device is still mounted. Remove the disk by hand once it is idle."* ]]
+  [[ "${output}" == *"${DEVICE} is still mounted. remove the disk by hand once it is idle."* ]]
 }

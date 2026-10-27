@@ -29,7 +29,7 @@ attach() {
 }
 
 wiping() {
-  printf 'y\n' | disk_test_run_env "${1:-}" kiyome "${DEVICE}"
+  printf '%s\n' "${DEVICE##*/}" | disk_test_run_env "${1:-}" kiyome "${DEVICE}"
 }
 
 fail_dd() {
@@ -52,9 +52,9 @@ bus_error="printf 'dd: Device not configured\\n' >&2; exit 1"
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  [[ "${output}" == *"The read probe failed on the first sectors of"* ]]
-  [[ "${output}" == *"That was a read of data this wipe is about to overwrite"* ]]
-  [[ "${output}" == *"Speed is not being watched on this disk. Only the byte-for-byte verify decides."* ]]
+  [[ "${output}" == *"the read probe failed on the first sectors of"* ]]
+  [[ "${output}" == *"that was a read of data this wipe is about to overwrite"* ]]
+  [[ "${output}" == *"speed is not being watched on this disk. only the byte-for-byte verify decides."* ]]
 }
 
 @test "a read probe that loses the bus stops the wipe" {
@@ -93,7 +93,7 @@ bus_error="printf 'dd: Device not configured\\n' >&2; exit 1"
   run wiping "SLOW_FACTOR=50 CALIBRATION_PROBES=2"
 
   # Assert
-  [[ "${output}" == *"The read probe failed at offset 1048576 of"* ]]
+  [[ "${output}" == *"the read probe failed at offset 1048576 of"* ]]
 }
 
 @test "a long probe failing is reported at its offset" {
@@ -105,7 +105,7 @@ bus_error="printf 'dd: Device not configured\\n' >&2; exit 1"
   run wiping "SLOW_FACTOR=50 CALIBRATION_PROBES=2"
 
   # Assert
-  [[ "${output}" == *"The read probe failed at offset 4096 of"* ]]
+  [[ "${output}" == *"the read probe failed at offset 4096 of"* ]]
 }
 
 @test "a disk that leaves the bus while being measured stops the wipe" {
@@ -133,7 +133,7 @@ bus_error="printf 'dd: Device not configured\\n' >&2; exit 1"
   # Assert
   [[ "${status}" -eq 0 ]]
   [[ "${output}" == *"is too small to time, so only the byte-for-byte verify will judge it."* ]]
-  [[ "${output}" == *"Speed is not being watched on this disk."* ]]
+  [[ "${output}" == *"speed is not being watched on this disk."* ]]
 }
 
 @test "a Zip disk that cannot be timed is not wiped blind" {
@@ -146,7 +146,7 @@ bus_error="printf 'dd: Device not configured\\n' >&2; exit 1"
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"STOPPED: this disk could not be timed, so nothing would be watching for a stall."* ]]
+  [[ "${output}" == *"stopped: this disk could not be timed, so nothing would be watching for a stall."* ]]
 }
 
 @test "a disk that answers too fast to time is wiped with only the verify watching" {

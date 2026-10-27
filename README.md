@@ -19,24 +19,38 @@ English | [日本語](README.ja.md) | [简体中文](README.zh-Hans.md) | [繁�
 
 </div>
 
-One command, 131 tests, 9 shell modules, and no runtime dependency beyond a POSIX system. `kiyome` is 清め, Japanese for purification. Its companion [kakikomi](https://github.com/gufranco/kakikomi) writes disk images.
+One command, 143 tests, 9 shell modules, and no runtime dependency beyond a POSIX system. `kiyome` is 清め, Japanese for purification. Its companion [kakikomi](https://github.com/gufranco/kakikomi) writes disk images.
 
 ---
 
 ```console
-$ kiyome /dev/disk4
-Device: /dev/disk4
-Device reports itself as: SANDISK ULTRA
-This will ERASE all data on /dev/disk4. Continue? (y/N): y
-Measuring /dev/disk4 before wiping it, so every limit comes from this disk.
-Pass 1 of 1
-Writing per-chunk unique data over 4 chunks, timing every chunk
-Verify per-chunk unique data completed
-Verify 0xAA completed
-Verify 0x55 completed
-Verify 0xFF completed
-Verify 0x00 completed
-Device ejected successfully
+$ kiyome /dev/disk6
+
+Device: /dev/disk6, 64.0 MiB, DISK IMAGE
+        Everything on it is erased, including:
+          +67.1 MB disk6
+Plan:   1 pass of unique data, 0xAA, 0x55, 0xFF and 0x00, each read back
+        then eject
+
+Type disk6 to erase, or anything else to stop: disk6
+Unmounting /dev/disk6...
+Disk unmounted
+Measuring /dev/disk6 before wiping it, so every limit comes from this disk.
+Measured read: 222666 KiB/s sustained, 26ms to reach a sector, allowing 3x that before stopping.
+Measured write: 27028 KiB/s sustained, 27ms to reach a sector, allowing 3x that before stopping.
+Pass 1 of 1, writing per-chunk unique data 100%  438.4 MiB/s  0m00s left
+Pass 1 of 1, verifying per-chunk unique data 100%  237.9 MiB/s  0m00s left
+Pass 1 of 1, writing 0xAA 100%  888.9 MiB/s  0m00s left
+Pass 1 of 1, verifying 0xAA 100%  400.0 MiB/s  0m00s left
+Pass 1 of 1, writing 0x55 100%  941.2 MiB/s  0m00s left
+Pass 1 of 1, verifying 0x55 100%  240.6 MiB/s  0m00s left
+Pass 1 of 1, writing 0xFF 100%  888.9 MiB/s  0m00s left
+Pass 1 of 1, verifying 0xFF 100%  390.2 MiB/s  0m00s left
+Pass 1 of 1, writing 0x00 100%  711.1 MiB/s  0m00s left
+Pass 1 of 1, verifying 0x00 100%  280.7 MiB/s  0m00s left
+Wiped /dev/disk6: every byte of every pattern read back as written.
+Ejecting /dev/disk6...
+Ejected. /dev/disk6 is safe to remove.
 ```
 
 <a id="quick-start"></a>
@@ -49,8 +63,8 @@ Device ejected successfully
 |:-----|:----|:--------|
 | POSIX `sh`, `dd`, `cmp`, `od` | The tool itself | Preinstalled on macOS and Linux. `bash` is not required |
 | `openssl` | The per-chunk unique pattern | Preinstalled |
-| `newfs_msdos`, or `sfdisk` and `mkfs.fat` | `CREATE=y` on macOS, or on Linux | Preinstalled on macOS; `apt install fdisk dosfstools` |
-| `mkfs.exfat` | `CREATE=y` on disks over 32 GiB on Linux | `apt install exfatprogs` |
+| `newfs_msdos`, or `sfdisk` and `mkfs.fat` | `--create` on macOS, or on Linux | Preinstalled on macOS; `apt install fdisk dosfstools` |
+| `mkfs.exfat` | `--create` on disks over 32 GiB on Linux | `apt install exfatprogs` |
 
 ### Install
 
@@ -66,7 +80,7 @@ cd kiyome
 make install
 ```
 
-`make install` copies the tool under `~/.local` and puts `kiyome` in `~/.local/bin`; set `PREFIX` to change that.
+`make install` copies the tool, its man page and its bash, zsh and fish completions under `~/.local`, and puts `kiyome` in `~/.local/bin`; set `PREFIX` to change that. The Homebrew formula installs the same files.
 
 ### Verify
 
@@ -78,16 +92,26 @@ $ kiyome doctor
 
 | Command | Purpose |
 |:--------|:--------|
-| `kiyome <device\|mount_point>` | Overwrite that disk with five verified patterns, then eject it |
+| `kiyome [options] <device\|mount_point>` | Overwrite that disk with five verified patterns, then eject it |
 | `kiyome` with no arguments | Ask for the disk and the number of passes when run in a terminal |
 | `kiyome doctor` | List the tools kiyome needs and whether they are installed |
 | `kiyome version`, `kiyome help` | Print the version or the full usage page |
 
-| Variable | Effect |
-|:---------|:-------|
-| `PASSES=N` | Repeat the five patterns N times. 1 by default |
-| `CREATE=y` | Leave a fresh FAT32 or exFAT filesystem behind instead of a blank disk |
-| `ALLOW_INTERNAL=y` | Allow an internal disk. The disk holding the running system is always refused |
+| Option | Effect |
+|:-------|:-------|
+| `--passes N` | Repeat the five patterns N times. 1 by default |
+| `--create` | Leave a fresh FAT32 or exFAT filesystem behind instead of a blank disk |
+| `--allow-internal` | Allow an internal disk. The disk holding the running system is always refused |
+
+`--passes=3` works too, and `--` ends the options. The environment variables `PASSES=N`, `CREATE=y` and `ALLOW_INTERNAL=y` set the same options; an option on the command line wins.
+
+```bash
+kiyome /dev/disk4                 # one pass, then eject
+kiyome --passes 3 /dev/sdb        # three passes
+kiyome --create /Volumes/USB      # leave a FAT32 or exFAT filesystem behind
+```
+
+kiyome follows the shared command-line contract of its family, described in [FAMILY.md](FAMILY.md).
 
 <a id="how-it-works"></a>
 
@@ -130,8 +154,8 @@ Everything is POSIX `sh` with ShellCheck `-o all` at zero findings and no disabl
 
 | Command | Description |
 |:--------|:------------|
-| `make lint` | ShellCheck on every script, and a check that no function is defined twice |
-| `make test` | The 131 `bats` tests under the system `sh` |
+| `make lint` | ShellCheck on every script and completion, mandoc on the man page, and a check that no function is defined twice |
+| `make test` | The 143 `bats` tests under the system `sh` |
 | `make test-all` | The same tests under every installed shell |
 | `make test-linux` | The same tests in a privileged Ubuntu container, from a Mac |
 | `make coverage` | bashcov line coverage on this Mac and in that container, merged, with a 100% gate CI enforces |

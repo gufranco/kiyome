@@ -17,7 +17,7 @@ docker run --rm --privileged \
     apt-get install -y -qq --no-install-recommends \
       bats zsh dash openssl util-linux eject mount udev sudo ca-certificates \
       dosfstools fdisk xz-utils zstd bzip2 libarchive-tools qemu-utils curl python3 procps dmsetup \
-      mtools exfatprogs wimtools xorriso >/dev/null
+      mtools exfatprogs wimtools xorriso mandoc >/dev/null
     i=0
     while [ "$i" -lt 64 ]; do
       [ -e "/dev/loop$i" ] || mknod -m 660 "/dev/loop$i" b 7 "$i"

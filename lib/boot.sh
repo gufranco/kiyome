@@ -33,14 +33,14 @@ disk_format_floppy() {
       ;;
     Linux)
       if ! disk_cmd_exists mkfs.fat; then
-        disk_error "mkfs.fat is not installed. Install the dosfstools package."
+        disk_error "mkfs.fat is not installed. install the dosfstools package."
         return 1
       fi
       sudo mkfs.fat -F 12 -n "$2" "$1" >/dev/null 2>&1 && return 0
       ;;
     *) ;;
   esac
-  disk_error "Failed to format floppy"
+  disk_error "failed to format floppy."
   return 1
 }
 
@@ -51,7 +51,7 @@ disk_format_darwin() {
     disk_success "Partition created ($2)"
     return 0
   fi
-  disk_error "Failed to create partition"
+  disk_error "failed to create partition."
   return 1
 }
 
@@ -62,7 +62,7 @@ disk_format_linux() {
     *) disk_fl_type="07" disk_fl_tool="mkfs.exfat" ;;
   esac
   if ! disk_cmd_exists sfdisk; then
-    disk_error "sfdisk is not installed. Install the fdisk package."
+    disk_error "sfdisk is not installed. install the fdisk package."
     return 1
   fi
   if ! disk_cmd_exists "${disk_fl_tool}"; then
@@ -70,7 +70,7 @@ disk_format_linux() {
     return 1
   fi
   if ! printf ',,%s;\n' "${disk_fl_type}" | sudo sfdisk "$1" >/dev/null 2>&1; then
-    disk_error "Failed to create partition table"
+    disk_error "failed to create partition table."
     return 1
   fi
   sudo partprobe "$1" 2>/dev/null
@@ -83,7 +83,7 @@ disk_format_linux() {
     disk_fl_waited=$((disk_fl_waited + 1))
   done
   if [ ! -b "${disk_fl_part}" ]; then
-    disk_error "Partition ${disk_fl_part} did not appear"
+    disk_error "partition ${disk_fl_part} did not appear."
     return 1
   fi
 
@@ -97,7 +97,7 @@ disk_format_linux() {
     disk_success "Partition created ($2)"
     return 0
   fi
-  disk_error "Failed to format partition"
+  disk_error "failed to format partition."
   return 1
 }
 

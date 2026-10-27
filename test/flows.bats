@@ -43,10 +43,10 @@ answering() {
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"kiyome: Invalid PASSES value: 0 (must be a positive integer)"* ]]
+  [[ "${output}" == *"kiyome: --passes must be a whole number of 1 or more, got: 0"* ]]
 }
 
-@test "kiyome leaves the disk alone when the confirmation is not y" {
+@test "kiyome leaves the disk alone when the typed name does not match" {
   # Arrange
   local before after
   before="$(disk_test_range_bytes "${IMAGE}" 0 2097152)"
@@ -57,16 +57,16 @@ answering() {
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"kiyome: warning: Operation cancelled"* ]]
+  [[ "${output}" == *"kiyome: warning: cancelled, nothing was touched."* ]]
   [[ "${after}" == "${before}" ]]
 }
 
 @test "kiyome repeats the patterns for every pass asked" {
   # Arrange
-  local settings="PASSES=2"
+  local passes=2
 
   # Act
-  run feeding 'y\n' disk_test_run_env "${settings}" kiyome "${DEVICE}"
+  run feeding "${DEVICE##*/}\n" disk_test_run kiyome --passes "${passes}" "${DEVICE}"
 
   # Assert
   [[ "${status}" -eq 0 ]]
@@ -75,7 +75,7 @@ answering() {
 
 @test "kiyome asks for the disk and the passes in a terminal" {
   # Arrange
-  local answers="${NAME}\n1\ny\n"
+  local answers="${NAME}\n1\n${NAME}\n"
 
   # Act
   run answering "${answers}" kiyome
@@ -91,7 +91,7 @@ answering() {
 
 @test "kiyome does not ask for passes already set" {
   # Arrange
-  local answers="${NAME}\ny\n"
+  local answers="${NAME}\n${NAME}\n"
   export PASSES=1
 
   # Act
@@ -114,7 +114,7 @@ answering() {
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"kiyome: Pick exactly one disk."* ]]
+  [[ "${output}" == *"kiyome: pick exactly one disk."* ]]
 }
 
 @test "kiyome stops when input ends at the passes prompt" {
@@ -129,12 +129,12 @@ answering() {
   [[ "${output}" == *"Passes [1]: "* ]]
 }
 
-@test "kiyome leaves a floppy filesystem on a floppy-sized disk with CREATE=y" {
+@test "kiyome leaves a floppy filesystem on a floppy-sized disk with --create" {
   # Arrange
-  local settings="CREATE=y"
+  local option=--create
 
   # Act
-  run feeding 'y\n' disk_test_run_env "${settings}" kiyome "${DEVICE}"
+  run feeding "${DEVICE##*/}\n" disk_test_run kiyome "${option}" "${DEVICE}"
 
   # Assert
   [[ "${status}" -eq 0 ]]

@@ -1,0 +1,23 @@
+#compdef kiyome
+
+_kiyome() {
+  local -a commands
+  commands=(
+    'doctor:check the tools kiyome needs'
+    'version:print the version'
+    'help:print usage'
+  )
+
+  if (( CURRENT == 2 )) && [[ "${words[2]}" != -* ]]; then
+    _alternative 'commands:command:_describe command commands' 'files:device:_files'
+    return
+  fi
+
+  _arguments \
+    '--passes[repeat the five patterns N times]:passes:' \
+    '--create[leave a fresh FAT or exFAT filesystem behind]' \
+    '--allow-internal[allow an internal disk]' \
+    '*:device:_files'
+}
+
+_kiyome "$@"

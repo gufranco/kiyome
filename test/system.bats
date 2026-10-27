@@ -36,11 +36,18 @@ attach_blank() {
 }
 
 wiping() {
-  printf 'y\n' | disk_test_run kiyome "${DEVICE}"
+  printf '%s\n' "${DEVICE##*/}" | disk_test_run kiyome "${DEVICE}"
 }
 
 declining() {
   printf 'n\n' | disk_test_run kiyome "$1"
+}
+
+on_terminal() {
+  case "${DISK_TEST_OS}" in
+  Darwin) script -q /dev/null "$@" </dev/null ;;
+  *) script -qec "$(printf '%q ' "$@")" /dev/null </dev/null ;;
+  esac
 }
 
 @test "a bounded command past its limit is stopped without timeout" {
@@ -163,7 +170,7 @@ exec \"\$REAL\" \"\$@\""
   # Assert
   [[ "${status}" -eq 1 ]]
   [[ "${output}" == *"Administrator access is required to reach the raw device."* ]]
-  [[ "${output}" == *"kiyome: Administrator access was not granted"* ]]
+  [[ "${output}" == *"kiyome: administrator access was not granted."* ]]
 }
 
 @test "kiyome continues once administrator access is granted" {
@@ -279,7 +286,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == "kiyome: No device found for mount point: ${folder}" ]]
+  [[ "${output}" == "kiyome: no device found for mount point: ${folder}" ]]
 }
 
 @test "kiyome resolves a partition to its whole disk" {
@@ -311,7 +318,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"kiyome: Device not found or invalid: "* ]]
+  [[ "${output}" == *"kiyome: device not found or invalid: "* ]]
 }
 
 @test "kiyome needs openssl for the per-chunk pattern" {
@@ -385,4 +392,18 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${output}" == "512" ]]
+}
+
+@test "progress redraws one line on a terminal" {
+  # Arrange
+  local -a shell_words
+  read -r -a shell_words <<<"${DISK_SHELL:-sh}"
+  local search_path
+  search_path="$(disk_test_path)"
+
+  # Act
+  run on_terminal env PATH="${search_path}" "${shell_words[@]}" "${DISK_TESTS_DIR}/call.sh" disk_progress "Pass 1 of 1, writing 0xAA" 1048576 1048576 0
+
+  # Assert
+  [[ "${output}" == *"Pass 1 of 1, writing 0xAA 100%"* ]]
 }

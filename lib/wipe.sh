@@ -13,12 +13,12 @@ disk_unique_chunk() {
   printf '%s\n' "${disk_uc_target}"
 }
 
-disk_wipe_phase_announce() {
+disk_wipe_phase_label() {
   if [ "$1" = "write" ]; then
-    disk_info "Writing $2 over $3 chunks, timing every chunk"
+    printf '%s, writing %s\n' "${DISK_PASS_LABEL}" "$2"
   else
-    disk_flush_reads "$4"
-    disk_info "Verifying $2 over $3 chunks, timing every chunk"
+    disk_flush_reads "$3"
+    printf '%s, verifying %s\n' "${DISK_PASS_LABEL}" "$2"
   fi
 }
 
@@ -93,22 +93,22 @@ disk_chunk_failed() {
   disk_log_lines disk_error "${DISK_BITS}"
   case "${DISK_OUTCOME}" in
     4)
-      disk_error "STOPPED: interrupted during ${disk_cf_where}."
-      disk_error "Nothing else will be written. Ejecting so the head leaves the surface."
+      disk_error "stopped: interrupted during ${disk_cf_where}."
+      disk_error "nothing else will be written. ejecting so the head leaves the surface."
       disk_eject_now "${disk_cf_disk}"
       ;;
     3)
       disk_cf_shown="$(disk_duration "${DISK_DEADLINE}")"
-      disk_fault "${disk_cf_disk}" "${disk_cf_where} went silent for ${disk_cf_shown} at offset $5" stall
+      disk_fault "${disk_cf_disk}" "${disk_cf_where} went silent for ${disk_cf_shown} at offset $5." stall
       ;;
     2)
-      disk_fault "${disk_cf_disk}" "${disk_cf_where} stopped answering at offset $5"
+      disk_fault "${disk_cf_disk}" "${disk_cf_where} stopped answering at offset $5."
       ;;
     *)
       if [ "${DISK_OUTCOME}" -eq 5 ] || disk_head_crash_family; then
-        disk_fault "${disk_cf_disk}" "${disk_cf_where} did not come back clean at offset $5" fatal
+        disk_fault "${disk_cf_disk}" "${disk_cf_where} did not come back clean at offset $5." fatal
       else
-        disk_fault "${disk_cf_disk}" "${disk_cf_where} failed ${DISK_ATTEMPTS:-1} times at offset $5"
+        disk_fault "${disk_cf_disk}" "${disk_cf_where} failed ${DISK_ATTEMPTS:-1} times at offset $5."
       fi
       ;;
   esac
@@ -127,10 +127,12 @@ disk_run_phase() {
   [ "${disk_rp_pattern}" = "unique" ] && disk_rp_shown="per-chunk unique data"
   if [ "${disk_rp_pattern}" != "unique" ] &&
     ! disk_rp_reference="$(disk_pattern_file "${DISK_CHUNK}" "${disk_rp_pattern}")"; then
-    disk_error "Unable to build the ${disk_rp_pattern} reference pattern"
+    disk_error "unable to build the ${disk_rp_pattern} reference pattern."
     return 1
   fi
-  disk_wipe_phase_announce "${disk_rp_direction}" "${disk_rp_shown}" "${disk_rp_total}" "${disk_rp_io}"
+  disk_rp_label="$(disk_wipe_phase_label "${disk_rp_direction}" "${disk_rp_shown}" "${disk_rp_io}")"
+  disk_rp_started="$(disk_now_ms)"
+  DISK_PROGRESS_STEP=0
 
   disk_rp_index=0
   while [ "${disk_rp_index}" -lt "${disk_rp_total}" ]; do
@@ -140,7 +142,7 @@ disk_run_phase() {
     disk_rp_number=$((disk_rp_index + 1))
     if [ "${disk_rp_pattern}" = "unique" ] &&
       ! disk_rp_reference="$(disk_unique_chunk "${disk_rp_index}" "${disk_rp_piece}")"; then
-      disk_error "Unable to build the unique pattern for chunk ${disk_rp_number} of ${disk_rp_total}"
+      disk_error "unable to build the unique pattern for chunk ${disk_rp_number} of ${disk_rp_total}."
       return 1
     fi
 
@@ -160,32 +162,27 @@ disk_run_phase() {
       disk_fault "${disk_rp_disk}" "${DISK_REASON}" stall
       return 1
     fi
+    disk_progress "${disk_rp_label}" $((disk_rp_offset + disk_rp_piece)) "${disk_rp_size}" "${disk_rp_started}"
     disk_rp_index=$((disk_rp_index + 1))
   done
 
-  if [ "${disk_rp_direction}" = "write" ]; then
-    sync
-    disk_success "Write ${disk_rp_shown} completed"
-  else
-    disk_success "Verify ${disk_rp_shown} completed"
-  fi
+  [ "${disk_rp_direction}" = "write" ] && sync
   if [ "${disk_rp_marginal}" -gt 0 ]; then
-    disk_warning "${disk_rp_marginal} of ${disk_rp_total} chunks only settled on a retry. This media is wearing out."
+    disk_warning "${disk_rp_marginal} of ${disk_rp_total} chunks only settled on a retry. this media is wearing out."
   fi
   DISK_DEADLINE="$(disk_idle_deadline)"
   return 0
 }
 
 disk_execute_pass() {
-  disk_info "Pass $3 of $4"
+  DISK_PASS_LABEL="Pass $3 of $4"
   if ! DISK_KEY="$(openssl rand -hex 16)" || [ "${#DISK_KEY}" -ne 32 ]; then
-    disk_error "Unable to generate the key for the unique pattern"
+    disk_error "unable to generate the key for the unique pattern."
     return 1
   fi
   for disk_ep_pattern in unique 0xAA 0x55 0xFF 0x00; do
     disk_run_phase write "$1" "$2" "${disk_ep_pattern}" || return 1
     disk_run_phase read "$1" "$2" "${disk_ep_pattern}" || return 1
   done
-  disk_success "Pass $3/$4 completed"
   return 0
 }

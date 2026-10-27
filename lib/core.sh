@@ -364,11 +364,11 @@ disk_resolve() {
       *) ;;
     esac
     if [ -z "${disk_rs_disk}" ]; then
-      disk_error "No device found for mount point: ${disk_rs_input}"
+      disk_error "no device found for mount point: ${disk_rs_input}"
       return 1
     fi
   else
-    disk_error "Not a device or mount point: ${disk_rs_input}"
+    disk_error "not a device or mount point: ${disk_rs_input}"
     return 1
   fi
 
@@ -402,7 +402,7 @@ disk_require_sudo() {
   sudo -n true 2>/dev/null && return 0
   disk_info "Administrator access is required to reach the raw device."
   if ! sudo -v; then
-    disk_error "Administrator access was not granted"
+    disk_error "administrator access was not granted."
     return 1
   fi
   return 0
@@ -410,7 +410,7 @@ disk_require_sudo() {
 
 disk_make_tmpdir() {
   DISK_TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/$1.XXXXXX")" || {
-    disk_error "Unable to create a working directory"
+    disk_error "unable to create a working directory."
     return 1
   }
   DISK_ERRFILE="${DISK_TMPDIR}/last-error"

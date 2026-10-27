@@ -26,7 +26,7 @@ teardown() {
   # Assert
   [[ -n "${boot}" ]] || skip "no block device holds / on this host"
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == "kiyome: STOPPED: ${boot} holds the running system, so it is never wiped." ]]
+  [[ "${output}" == "kiyome: stopped: ${boot} holds the running system, so it is never wiped." ]]
 }
 
 @test "kiyome refuses an internal disk without ALLOW_INTERNAL" {
@@ -41,6 +41,6 @@ teardown() {
   # Assert
   after="$(disk_test_range_bytes "${IMAGE}" 0 4194304)"
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == "kiyome: STOPPED: ${DEVICE} is an internal disk. Set ALLOW_INTERNAL=y to wipe it on purpose." ]]
+  [[ "${output}" == "kiyome: stopped: ${DEVICE} is an internal disk. use --allow-internal to wipe it on purpose." ]]
   [[ "${after}" == "${before}" ]]
 }

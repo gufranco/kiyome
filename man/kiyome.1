@@ -1,0 +1,77 @@
+.TH KIYOME 1 "2026-10-27" "kiyome" "User Commands"
+.SH NAME
+kiyome \- wipe a disk with five verified patterns, naming any bad bit line
+.SH SYNOPSIS
+.B kiyome
+.br
+.B kiyome
+.RI [ options ] " device" | mount_point
+.br
+.B kiyome doctor
+.br
+.B kiyome version
+.br
+.B kiyome help
+.SH DESCRIPTION
+.B kiyome
+writes per-chunk unique AES-CTR data, then 0xAA, 0x55, 0xFF and 0x00 over the
+whole disk, and reads every pattern back. A wrong byte is reported with the bit
+lines involved, which tells a stuck data line apart from worn media. Every
+chunk is timed against limits measured on the disk itself, so a drive that
+stalls is stopped and ejected before it damages the media.
+.PP
+Before anything is written, kiyome prints what it is about to erase and asks
+for the device name to be typed back.
+.SH COMMANDS
+.TP
+.B doctor
+List the tools kiyome needs and whether each is installed. Exits non-zero only
+when a required tool is missing.
+.TP
+.B version
+Print the version and the platform.
+.TP
+.B help
+Print the usage page.
+.SH OPTIONS
+.TP
+.BI \-\-passes " N"
+Repeat the five patterns
+.I N
+times. Default 1.
+.TP
+.B \-\-create
+Leave a fresh FAT or exFAT filesystem behind.
+.TP
+.B \-\-allow\-internal
+Allow an internal disk. The disk holding the running system is always refused.
+.PP
+Every option that takes a value also takes the form
+.IR \-\-name = value ,
+and
+.B \-\-
+ends the options.
+.SH ENVIRONMENT
+.TP
+.B PASSES
+Same as
+.BR \-\-passes .
+.TP
+.B CREATE
+Set to
+.B y
+for the same effect as
+.BR \-\-create .
+.TP
+.B ALLOW_INTERNAL
+Set to
+.B y
+for the same effect as
+.BR \-\-allow\-internal .
+.PP
+An option on the command line wins over the environment.
+.SH EXIT STATUS
+0 when every pattern read back as written, 1 on any failure or refusal.
+.SH SEE ALSO
+.BR kakikomi (1),
+.BR dd (1)

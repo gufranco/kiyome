@@ -82,7 +82,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"kiyome: Failed to create partition"* ]]
+  [[ "${output}" == *"kiyome: failed to create partition."* ]]
 }
 
 @test "a missing partitioner is named on Linux" {
@@ -96,7 +96,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"sfdisk is not installed. Install the fdisk package."* ]]
+  [[ "${output}" == *"sfdisk is not installed. install the fdisk package."* ]]
 }
 
 @test "a missing formatter is named on Linux" {
@@ -124,7 +124,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"mkfs.fat is not installed. Install the dosfstools package."* ]]
+  [[ "${output}" == *"mkfs.fat is not installed. install the dosfstools package."* ]]
 }
 
 @test "a partition table that cannot be written is reported on Linux" {
@@ -138,7 +138,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"Failed to create partition table"* ]]
+  [[ "${output}" == *"failed to create partition table"* ]]
 }
 
 @test "a partition that never appears is reported on Linux" {
@@ -155,7 +155,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"Partition ${DEVICE}p1 did not appear"* ]]
+  [[ "${output}" == *"partition ${DEVICE}p1 did not appear"* ]]
 }
 
 @test "a filesystem that cannot be made is reported on Linux" {
@@ -169,5 +169,5 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"Failed to format partition"* ]]
+  [[ "${output}" == *"failed to format partition"* ]]
 }

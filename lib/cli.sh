@@ -90,8 +90,58 @@ disk_pick_single() {
   disk_ps_list="$(DISK_PICK_PROMPT="$1" disk_pick_targets)" || return 1
   disk_ps_count="$(printf '%s\n' "${disk_ps_list}" | awk 'NF' | wc -l | tr -d '[:space:]')"
   if [ "${disk_ps_count}" -ne 1 ]; then
-    disk_error "Pick exactly one disk."
+    disk_error "pick exactly one disk."
     return 1
   fi
   printf '%s\n' "${disk_ps_list}"
+}
+
+disk_cli_is_option() {
+  case "$1" in
+    --* | -?*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+disk_cli_takes_value() {
+  case " ${DISK_VALUE_OPTIONS} " in
+    *" $1 "*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+disk_cli_assign() {
+  if ! disk_cli_takes_value "${1%%=*}"; then
+    if disk_option_flag "${1%%=*}"; then
+      disk_cli_hint "option '${1%%=*}' takes no value"
+    else
+      disk_cli_hint "unknown option '${1%%=*}'"
+    fi
+    return 1
+  fi
+  disk_option_value "${1%%=*}" "${1#*=}"
+}
+
+disk_cli_option() {
+  DISK_CLI_USED=0
+  case "$1" in
+    --*=*) disk_cli_assign "$1" ;;
+    --?*)
+      disk_option_flag "$1" && return 0
+      if ! disk_cli_takes_value "$1"; then
+        disk_cli_hint "unknown option '$1'"
+        return 1
+      fi
+      if [ "$2" -lt 1 ]; then
+        disk_cli_hint "option '$1' needs a value"
+        return 1
+      fi
+      DISK_CLI_USED=1
+      disk_option_value "$1" "$3"
+      ;;
+    *)
+      disk_cli_hint "unknown option '$1'"
+      return 1
+      ;;
+  esac
 }

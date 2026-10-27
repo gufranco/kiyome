@@ -155,12 +155,12 @@ disk_probe_verdict() {
   fi
   [ "$1" = "write" ] && return 2
   if disk_fragile; then
-    disk_error "A ${DISK_FAMILY} disk that cannot be read during a light probe is already failing."
-    disk_error "Stopping here rather than seeking across it again."
+    disk_error "a ${DISK_FAMILY} disk that cannot be read during a light probe is already failing."
+    disk_error "stopping here rather than seeking across it again."
     return 2
   fi
-  disk_warning "That was a read of data this ${DISK_ACTION_NOUN:-run} is about to overwrite, so it does not decide anything."
-  disk_warning "Continuing. The verify after each write is what judges the media."
+  disk_warning "that was a read of data this ${DISK_ACTION_NOUN:-run} is about to overwrite, so it does not decide anything."
+  disk_warning "continuing. the verify after each write is what judges the media."
   return 1
 }
 
@@ -193,7 +193,7 @@ disk_calibrate() {
   fi
 
   if ! disk_cb_large="$(disk_probe_bytes "${disk_cb_direction}" "${disk_cb_io}" "${disk_cb_unit}" "${disk_cb_room}")"; then
-    disk_report_failure "The ${disk_cb_direction} probe failed on the first sectors of ${disk_cb_disk}."
+    disk_report_failure "the ${disk_cb_direction} probe failed on the first sectors of ${disk_cb_disk}."
     disk_probe_verdict "${disk_cb_direction}" "${disk_cb_disk}"
     return "$?"
   fi
@@ -207,13 +207,13 @@ disk_calibrate() {
     disk_cb_offset=$((disk_cb_index * disk_cb_stride))
     [ $((disk_cb_offset + disk_cb_large + disk_cb_unit)) -gt "${disk_cb_size}" ] && break
     if ! disk_cb_short="$(disk_time_move "${disk_cb_direction}" "${disk_cb_io}" "${disk_cb_offset}" "${disk_cb_unit}")"; then
-      disk_report_failure "The ${disk_cb_direction} probe failed at offset ${disk_cb_offset} of ${disk_cb_disk}."
+      disk_report_failure "the ${disk_cb_direction} probe failed at offset ${disk_cb_offset} of ${disk_cb_disk}."
       disk_probe_verdict "${disk_cb_direction}" "${disk_cb_disk}"
       return "$?"
     fi
     disk_cb_next=$((disk_cb_offset + disk_cb_unit))
     if ! disk_cb_long="$(disk_time_move "${disk_cb_direction}" "${disk_cb_io}" "${disk_cb_next}" "${disk_cb_large}")"; then
-      disk_report_failure "The ${disk_cb_direction} probe failed at offset ${disk_cb_next} of ${disk_cb_disk}."
+      disk_report_failure "the ${disk_cb_direction} probe failed at offset ${disk_cb_next} of ${disk_cb_disk}."
       disk_probe_verdict "${disk_cb_direction}" "${disk_cb_disk}"
       return "$?"
     fi
@@ -285,18 +285,18 @@ disk_measure() {
       DISK_MEASURED=1
       ;;
     2)
-      disk_fault "${disk_ms_disk}" "the disk failed while being measured, before $4 started"
+      disk_fault "${disk_ms_disk}" "the disk failed while being measured, before $4 started."
       return 1
       ;;
     *)
       if disk_fragile; then
-        disk_error "STOPPED: this disk could not be timed, so nothing would be watching for a stall."
-        disk_error "On ${DISK_FAMILY} media the clock is what catches a failing head before it scores the surface."
-        disk_error "Running blind would risk the cartridge and the drive, so this stops here."
+        disk_error "stopped: this disk could not be timed, so nothing would be watching for a stall."
+        disk_error "on ${DISK_FAMILY} media the clock is what catches a failing head before it scores the surface."
+        disk_error "running blind would risk the cartridge and the drive, so this stops here."
         disk_eject_now "${disk_ms_disk}"
         return 1
       fi
-      disk_warning "Speed is not being watched on this disk. Only the byte-for-byte verify decides."
+      disk_warning "speed is not being watched on this disk. only the byte-for-byte verify decides."
       ;;
   esac
 

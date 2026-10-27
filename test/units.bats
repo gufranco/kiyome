@@ -249,7 +249,7 @@ source "${BATS_TEST_DIRNAME:-.}/helpers.bash"
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == "kiyome: Not a listed number or disk: disk9" ]]
+  [[ "${output}" == "kiyome: not a listed number or disk: disk9." ]]
 }
 
 @test "a failure report repeats what dd said and clears it" {
@@ -257,11 +257,11 @@ source "${BATS_TEST_DIRNAME:-.}/helpers.bash"
   local detail="dd: error reading: Input/output error"
 
   # Act
-  run disk_test_call call_report_failure "${detail}" "The read probe failed."
+  run disk_test_call call_report_failure "${detail}" "the read probe failed."
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  [[ "${lines[0]}" == "kiyome: The read probe failed." ]]
+  [[ "${lines[0]}" == "kiyome: the read probe failed." ]]
   [[ "${lines[1]}" == "kiyome: dd said: ${detail}" ]]
   [[ "${#lines[@]}" -eq 2 ]]
 }
@@ -298,7 +298,7 @@ source "${BATS_TEST_DIRNAME:-.}/helpers.bash"
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"kiyome: Unable to create a working directory"* ]]
+  [[ "${output}" == *"kiyome: unable to create a working directory."* ]]
 }
 
 @test "an unknown system cannot release a disk" {

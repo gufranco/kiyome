@@ -1,29 +1,21 @@
-Device: DEV
-This will ERASE all data on DEV. Continue? (y/N): Unmounting DEV...
+
+Device: DEV, 4.0 MiB, unnamed device
+Plan:   1 pass of unique data, 0xAA, 0x55, 0xFF and 0x00, each read back
+        then eject
+
+Type DISK to erase, or anything else to stop: Unmounting DEV...
 Direct I/O is unavailable, so buffers are dropped before every verify.
 Measuring DEV before wiping it, so every limit comes from this disk.
-Cleaning DEV...
-Pass 1 of 1
-Writing per-chunk unique data over N chunks, timing every chunk
-Write per-chunk unique data completed
-Verifying per-chunk unique data over N chunks, timing every chunk
-Verify per-chunk unique data completed
-Writing 0xAA over N chunks, timing every chunk
-Write 0xAA completed
-Verifying 0xAA over N chunks, timing every chunk
-Verify 0xAA completed
-Writing 0x55 over N chunks, timing every chunk
-Write 0x55 completed
-Verifying 0x55 over N chunks, timing every chunk
-Verify 0x55 completed
-Writing 0xFF over N chunks, timing every chunk
-Write 0xFF completed
-Verifying 0xFF over N chunks, timing every chunk
-Verify 0xFF completed
-Writing 0x00 over N chunks, timing every chunk
-Write 0x00 completed
-Verifying 0x00 over N chunks, timing every chunk
-Verify 0x00 completed
-Pass 1/1 completed
-Ejecting device...
-kiyome: warning: Failed to eject device (may not support eject)
+Pass 1 of 1, writing per-chunk unique data 100%  RATE  T left
+Pass 1 of 1, verifying per-chunk unique data 100%  RATE  T left
+Pass 1 of 1, writing 0xAA 100%  RATE  T left
+Pass 1 of 1, verifying 0xAA 100%  RATE  T left
+Pass 1 of 1, writing 0x55 100%  RATE  T left
+Pass 1 of 1, verifying 0x55 100%  RATE  T left
+Pass 1 of 1, writing 0xFF 100%  RATE  T left
+Pass 1 of 1, verifying 0xFF 100%  RATE  T left
+Pass 1 of 1, writing 0x00 100%  RATE  T left
+Pass 1 of 1, verifying 0x00 100%  RATE  T left
+Wiped DEV: every byte of every pattern read back as written.
+Ejecting DEV...
+kiyome: warning: DEV did not eject. the wipe already finished, so remove it once the light stops.

@@ -26,7 +26,7 @@ teardown() {
 }
 
 wiping() {
-  printf 'y\n' | disk_test_run kiyome "${DEVICE}"
+  printf '%s\n' "${DEVICE##*/}" | disk_test_run kiyome "${DEVICE}"
 }
 
 @test "kiyome stops on media the drive reports as read-only" {
@@ -39,7 +39,7 @@ wiping() {
   # Assert
   [[ "${status}" -eq 1 ]]
   [[ "${output}" == *"is write protected, so nothing on it can be erased."* ]]
-  [[ "${output}" == *"The drive reports this media as read-only."* ]]
+  [[ "${output}" == *"the drive reports this media as read-only."* ]]
   [[ "${output}" == *"Release the write-protect switch or lock on the device"* ]]
 }
 
@@ -78,7 +78,7 @@ wiping() {
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"kiyome: Unable to determine disk size for ${DEVICE}"* ]]
+  [[ "${output}" == *"kiyome: unable to determine disk size for ${DEVICE}."* ]]
 }
 
 @test "kiyome skips a partial last sector" {
@@ -90,7 +90,7 @@ wiping() {
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  [[ "${output}" == *"Device size is not a whole number of sectors. Skipping the last 100 bytes."* ]]
+  [[ "${output}" == *"device size is not a whole number of sectors. skipping the last 100 bytes."* ]]
 }
 
 @test "kiyome stops when the drive refuses to eject after a fault" {
@@ -105,7 +105,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"Cut power to the drive before doing anything else with it."* ]]
+  [[ "${output}" == *"cut power to the drive before doing anything else with it."* ]]
 }
 
 @test "kiyome says the wipe finished when only the final eject fails" {
@@ -117,7 +117,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  [[ "${output}" == *"Failed to eject device"* ]]
+  [[ "${output}" == *"did not eject. the wipe already finished, so remove it once the light stops."* ]]
 }
 
 @test "kiyome leaves a floppy for the hand to remove" {
@@ -130,7 +130,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  [[ "${output}" == *"This drive has no software eject, so remove the disk by hand."* ]]
+  [[ "${output}" == *"Done. This drive has no software eject, so take the disk out now."* ]]
 }
 
 @test "kiyome stops when the disk stays mounted" {
@@ -144,7 +144,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"Disk is still mounted, so writing to it would corrupt the mounted volume"* ]]
+  [[ "${output}" == *"disk is still mounted, so writing to it would corrupt the mounted volume"* ]]
 }
 
 @test "kiyome stops when the mount state cannot be read" {
@@ -157,7 +157,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"Unable to read the mount state of ${DEVICE}, so this stops here"* ]]
+  [[ "${output}" == *"unable to read the mount state of ${DEVICE}, so this stops here"* ]]
 }
 
 @test "kiyome refuses a path that is neither a device nor a mount point" {
@@ -170,5 +170,5 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == "kiyome: Not a device or mount point: ${file}" ]]
+  [[ "${output}" == "kiyome: not a device or mount point: ${file}" ]]
 }
