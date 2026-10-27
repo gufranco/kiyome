@@ -17,10 +17,62 @@ disk_doctor_row() {
   printf '%-18s %-8s %s\n' "$1" "$2" "$3"
 }
 
+disk_flavor_version() {
+  printf '%s\n' "$1" | awk '{
+    for (i = 1; i <= NF; i++) {
+      t = $i
+      gsub(/[,;()]/, "", t)
+      sub(/^v/, "", t)
+      if (t ~ /^[0-9]+(\.[0-9]+)+[a-z0-9]*$/ || t ~ /^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]$/) { print t; exit }
+    }
+  }'
+}
+
+disk_tool_flavor() {
+  disk_tf_raw="$("$1" --version 2>&1 </dev/null)" || true
+  disk_tf_text="$(printf '%s\n' "${disk_tf_raw}" | sed -n '1p')"
+  disk_tf_version="$(disk_flavor_version "${disk_tf_text}")"
+  disk_tf_os="$(disk_os)"
+  case "${disk_tf_text}" in
+    *uutils*) disk_tf_name=uutils ;;
+    *BusyBox*) disk_tf_name=busybox ;;
+    *GNU* | *GLIBC* | *"(coreutils)"* | *"(diffutils)"*) disk_tf_name=gnu ;;
+    *mawk*) disk_tf_name=mawk ;;
+    *"awk version"* | *"(Darwin)"*) disk_tf_name=bsd ;;
+    *)
+      disk_tf_version=""
+      case "$1:${disk_tf_os}" in
+        *uutils*:* | */cargo/*:*) disk_tf_name=uutils ;;
+        *:Darwin | *:*BSD) disk_tf_name=bsd ;;
+        *) disk_tf_name=unknown ;;
+      esac
+      ;;
+  esac
+  printf '%s%s\n' "${disk_tf_name}" "${disk_tf_version:+ ${disk_tf_version}}"
+}
+
+disk_doctor_note() {
+  case "${1##*/}" in
+    dd | cmp | od | awk | sed | sha256sum) disk_tool_flavor "$1" ;;
+    shasum)
+      disk_dn_raw="$("$1" --version 2>&1 </dev/null)" || true
+      disk_dn_version="$(disk_flavor_version "${disk_dn_raw}")"
+      printf 'perl%s\n' "${disk_dn_version:+ ${disk_dn_version}}"
+      ;;
+    *) ;;
+  esac
+}
+
+disk_doctor_found() {
+  disk_df_note="$(disk_doctor_note "$1")"
+  printf '%s%s\n' "$1" "${disk_df_note:+, ${disk_df_note}}"
+}
+
 disk_doctor_tool() {
   disk_dt_found="$(command -v "$1" 2>/dev/null || true)"
   if [ -n "${disk_dt_found}" ]; then
-    disk_doctor_row "$1" ok "${disk_dt_found}"
+    disk_dt_detail="$(disk_doctor_found "${disk_dt_found}")"
+    disk_doctor_row "$1" ok "${disk_dt_detail}"
     return 0
   fi
   disk_doctor_row "$1" missing "$2"
@@ -30,7 +82,8 @@ disk_doctor_tool() {
 disk_doctor_either() {
   if command -v "$1" >/dev/null 2>&1 || command -v "$2" >/dev/null 2>&1; then
     disk_de_found="$(command -v "$1" 2>/dev/null || command -v "$2")"
-    disk_doctor_row "$1|$2" ok "${disk_de_found}"
+    disk_de_detail="$(disk_doctor_found "${disk_de_found}")"
+    disk_doctor_row "$1|$2" ok "${disk_de_detail}"
     return 0
   fi
   disk_doctor_row "$1|$2" missing "$3"
