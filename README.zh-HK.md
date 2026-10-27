@@ -19,7 +19,7 @@
 
 </div>
 
-一條指令，143 個測試，9 個 shell 模組，除了 POSIX 系統之外沒有任何執行時依賴。`kiyome` 是日文「清め」，意思是淨化。姊妹工具 [kakikomi](https://github.com/gufranco/kakikomi) 負責寫入磁碟映像。
+一條指令，156 個測試，9 個 shell 模組，除了 POSIX 系統之外沒有任何執行時依賴。`kiyome` 是日文「清め」，意思是淨化。姊妹工具 [kakikomi](https://github.com/gufranco/kakikomi) 負責寫入磁碟映像。
 
 ---
 
@@ -86,6 +86,16 @@ make install
 
 ```console
 $ kiyome doctor
+dd                 ok       /bin/dd, bsd
+cmp                ok       /usr/bin/cmp, bsd
+od                 ok       /usr/bin/od, bsd
+awk                ok       /usr/bin/awk, bsd 20200816
+sed                ok       /usr/bin/sed, bsd
+sudo               ok       /usr/bin/sudo
+sha256sum|shasum   ok       /sbin/sha256sum, bsd 1.0
+diskutil           ok       /usr/sbin/diskutil
+hdiutil            ok       /usr/bin/hdiutil
+openssl            ok       /usr/bin/openssl
 ```
 
 ## 用法
@@ -151,6 +161,8 @@ kiyome 會先量度磁碟本身的速度，再根據結果為每次傳輸設定�
 
 全部是 POSIX `sh`，ShellCheck `-o all` 零發現，沒有停用任何檢查。測試在 macOS 的 `/bin/sh`、`dash`、`bash`、`bash --posix` 和 `zsh` 下執行，亦在特權容器內的 Ubuntu 以相同的 shell 執行。
 
+它能在五種常用工具集上執行：Linux 上的 GNU 或 uutils coreutils，以及 macOS 內置的 BSD 工具、Homebrew 的 GNU 工具或 Homebrew 的 uutils 工具。CI 在每種工具集上執行全部測試，`kiyome doctor` 會列出每個核心工具的類型和版本，例如 `gnu 9.7`、`uutils 0.12.0` 或 `bsd 20200816`，讓錯誤報告說明用的是哪些工具。
+
 <a id="development"></a>
 
 ## 開發
@@ -158,7 +170,7 @@ kiyome 會先量度磁碟本身的速度，再根據結果為每次傳輸設定�
 | 指令 | 說明 |
 |:--------|:------------|
 | `make lint` | 對每個腳本和自動補全執行 ShellCheck，用 mandoc 檢查 man 說明頁，並檢查沒有函數被重複定義 |
-| `make test` | 在系統 `sh` 下執行 143 個 `bats` 測試 |
+| `make test` | 在系統 `sh` 下執行 156 個 `bats` 測試 |
 | `make test-all` | 在每個已安裝的 shell 下執行相同測試 |
 | `make test-linux` | 從 Mac 在特權 Ubuntu 容器內執行相同測試 |
 | `make coverage` | 在這部 Mac 和同一個容器內用 bashcov 量度行覆蓋率並合併，CI 要求 100% |

@@ -32,8 +32,13 @@ kakikomi is the closest sibling. Both keep the same `disk_` function names in [`
 
 `DISK_TEST_RECORD=1` rewrites the golden transcripts in [`test/golden/`](test/golden) from a fresh run; record on macOS and in the container, then read the diff.
 
-## Rules
+## Hard rules
 
+- It runs on all five toolsets in [FAMILY.md](FAMILY.md): Linux with GNU coreutils, Linux with uutils coreutils, macOS with the BSD tools it ships, macOS with Homebrew's GNU tools, and macOS with Homebrew's uutils tools. Never use an option one of them lacks; where they differ, handle each one in code and cover it with a test. A change that passes on one toolset only is not done.
+- CI runs the suite on every toolset through [`scripts/toolset.sh`](scripts/toolset.sh). To reproduce a report, put the reporter's toolset first: `export PATH="$(sh scripts/toolset.sh gnu | paste -sd: -):$PATH"`.
+- `doctor` names the flavor and version of every core tool it lists, such as `gnu 9.7`, `uutils 0.12.0` or `bsd 20200816`. A new core dependency gets a `doctor` row with its flavor in the same change.
+- [CLAUDE.md](CLAUDE.md) holds only `@AGENTS.md`. Rules for this repository live here, never there.
+- A disk is named by its device, such as `/dev/disk4`, or by any volume mounted from it, such as `/Volumes/USB`. Every argument that takes a disk resolves a volume to the whole disk behind it, and the README shows both forms.
 - POSIX `sh` only. Every function-scoped variable carries the function's prefix, because `sh` has no `local`.
 - No comments in source. Tool directives and the `Arrange`, `Act`, `Assert` markers in tests are the only exceptions.
 - Tests wipe real file-backed disks attached with `hdiutil` or `losetup`. Faults come only from small wrappers placed on `PATH`.

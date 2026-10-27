@@ -19,7 +19,7 @@
 
 </div>
 
-コマンドは1つ、テストは143件、シェルのモジュールは9個で、POSIXシステム以外に実行時の依存はありません。`kiyome`は日本語の「清め」です。姉妹ツールの[kakikomi](https://github.com/gufranco/kakikomi)はディスクイメージを書き込みます。
+コマンドは1つ、テストは156件、シェルのモジュールは9個で、POSIXシステム以外に実行時の依存はありません。`kiyome`は日本語の「清め」です。姉妹ツールの[kakikomi](https://github.com/gufranco/kakikomi)はディスクイメージを書き込みます。
 
 ---
 
@@ -86,6 +86,16 @@ make install
 
 ```console
 $ kiyome doctor
+dd                 ok       /bin/dd, bsd
+cmp                ok       /usr/bin/cmp, bsd
+od                 ok       /usr/bin/od, bsd
+awk                ok       /usr/bin/awk, bsd 20200816
+sed                ok       /usr/bin/sed, bsd
+sudo               ok       /usr/bin/sudo
+sha256sum|shasum   ok       /sbin/sha256sum, bsd 1.0
+diskutil           ok       /usr/sbin/diskutil
+hdiutil            ok       /usr/bin/hdiutil
+openssl            ok       /usr/bin/openssl
 ```
 
 ## 使い方
@@ -151,6 +161,8 @@ kiyomeはまずディスク自体の速度を測り、その値から各転送�
 
 すべてPOSIX `sh`で書かれ、ShellCheckの`-o all`で指摘ゼロ、無効化したチェックもありません。テストはmacOSの`/bin/sh`、`dash`、`bash`、`bash --posix`、`zsh`と、特権コンテナ内のUbuntuの同じシェルで実行します。
 
+Linux の GNU coreutils と uutils coreutils、macOS 標準の BSD ツール、Homebrew の GNU ツール、Homebrew の uutils ツールという、よく使われる 5 つのツールセットのどれでも動きます。CI はそれぞれで全テストを実行し、`kiyome doctor` は主要ツールの系統とバージョン（`gnu 9.7`、`uutils 0.12.0`、`bsd 20200816` など）を表示するので、不具合報告でどのツールが動いたかが分かります。
+
 <a id="development"></a>
 
 ## 開発
@@ -158,7 +170,7 @@ kiyomeはまずディスク自体の速度を測り、その値から各転送�
 | コマンド | 説明 |
 |:--------|:------------|
 | `make lint` | すべてのスクリプトと補完にShellCheck、manページにmandocを実行し、関数が二重に定義されていないことを確認します |
-| `make test` | システムの`sh`で143件の`bats`テスト |
+| `make test` | システムの`sh`で156件の`bats`テスト |
 | `make test-all` | インストール済みのすべてのシェルで同じテスト |
 | `make test-linux` | Macから、特権付きUbuntuコンテナで同じテスト |
 | `make coverage` | このMacと同じコンテナでbashcovによる行カバレッジを測定して統合します。CIは100%を必須にします |

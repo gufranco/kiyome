@@ -19,7 +19,7 @@ English | [日本語](README.ja.md) | [简体中文](README.zh-Hans.md) | [繁�
 
 </div>
 
-One command, 143 tests, 9 shell modules, and no runtime dependency beyond a POSIX system. `kiyome` is 清め, Japanese for purification. Its companion [kakikomi](https://github.com/gufranco/kakikomi) writes disk images.
+One command, 156 tests, 9 shell modules, and no runtime dependency beyond a POSIX system. `kiyome` is 清め, Japanese for purification. Its companion [kakikomi](https://github.com/gufranco/kakikomi) writes disk images.
 
 ---
 
@@ -86,6 +86,16 @@ make install
 
 ```console
 $ kiyome doctor
+dd                 ok       /bin/dd, bsd
+cmp                ok       /usr/bin/cmp, bsd
+od                 ok       /usr/bin/od, bsd
+awk                ok       /usr/bin/awk, bsd 20200816
+sed                ok       /usr/bin/sed, bsd
+sudo               ok       /usr/bin/sudo
+sha256sum|shasum   ok       /sbin/sha256sum, bsd 1.0
+diskutil           ok       /usr/sbin/diskutil
+hdiutil            ok       /usr/bin/hdiutil
+openssl            ok       /usr/bin/openssl
 ```
 
 ## Usage
@@ -151,6 +161,8 @@ The disk holding the running system is always refused, and a mounted volume is u
 
 Everything is POSIX `sh` with ShellCheck `-o all` at zero findings and no disabled checks. The suites run on macOS under `/bin/sh`, `dash`, `bash`, `bash --posix` and `zsh`, and on Ubuntu under the same shells in a privileged container.
 
+Every run works on the five toolsets in common use: Linux with GNU or uutils coreutils, and macOS with its own BSD tools, Homebrew's GNU tools or Homebrew's uutils tools. CI runs the whole suite on each, and `kiyome doctor` names the flavor and version of every core tool, such as `gnu 9.7`, `uutils 0.12.0` or `bsd 20200816`, so a bug report says which tools ran.
+
 <a id="development"></a>
 
 ## Development
@@ -158,7 +170,7 @@ Everything is POSIX `sh` with ShellCheck `-o all` at zero findings and no disabl
 | Command | Description |
 |:--------|:------------|
 | `make lint` | ShellCheck on every script and completion, mandoc on the man page, and a check that no function is defined twice |
-| `make test` | The 143 `bats` tests under the system `sh` |
+| `make test` | The 156 `bats` tests under the system `sh` |
 | `make test-all` | The same tests under every installed shell |
 | `make test-linux` | The same tests in a privileged Ubuntu container, from a Mac |
 | `make coverage` | bashcov line coverage on this Mac and in that container, merged, with a 100% gate CI enforces |
