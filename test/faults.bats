@@ -146,7 +146,7 @@ probe_write='case "$*" in *pattern-*) true ;; *) false ;; esac'
 
 @test "kiyome refuses media whose writes silently do not land" {
   # Arrange
-  fake_dd "[ \"\$target\" = write ] && ${first_sector}" "set -- \$(printf '%s\n' \"\$@\" | sed 's|^of=.*|of=/dev/null|; /^seek=/d'); exec \"\$REAL\" \"\$@\""
+  fake_dd "[ \"\$target\" = write ] && ${first_sector}" "set -- \$(printf '%s\n' \"\$@\" | sed 's|^of=.*|of=/dev/null|; /^seek=/d; /^oflag=/d'); exec \"\$REAL\" \"\$@\""
 
   # Act
   run wiping
