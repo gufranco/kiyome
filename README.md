@@ -19,7 +19,7 @@ English | [日本語](README.ja.md) | [简体中文](README.zh-Hans.md) | [繁�
 
 </div>
 
-One command, 156 tests, 9 shell modules, and no runtime dependency beyond a POSIX system. `kiyome` is 清め, Japanese for purification. Its companion [kakikomi](https://github.com/gufranco/kakikomi) writes disk images.
+One command, 157 tests, 9 shell modules, and no runtime dependency beyond a POSIX system. `kiyome` is 清め, Japanese for purification. Its companion [kakikomi](https://github.com/gufranco/kakikomi) writes disk images.
 
 ---
 
@@ -170,7 +170,7 @@ Every run works on the five toolsets in common use: Linux with GNU or uutils cor
 | Command | Description |
 |:--------|:------------|
 | `make lint` | ShellCheck on every script and completion, mandoc on the man page, and a check that no function is defined twice |
-| `make test` | The 156 `bats` tests under the system `sh` |
+| `make test` | The 157 `bats` tests under the system `sh` |
 | `make test-all` | The same tests under every installed shell |
 | `make test-linux` | The same tests in a privileged Ubuntu container, from a Mac |
 | `make coverage` | bashcov line coverage on this Mac and in that container, merged, with a 100% gate CI enforces |

@@ -162,7 +162,7 @@ exec \"\$REAL\" \"\$@\""
   # Arrange
   [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "macOS formats with diskutil"
   SHIMS="${WORK}/shims"
-  disk_test_shim mkfs.fat "exit 1"
+  disk_test_shim mkfs.fat "printf 'mkfs.fat: unable to open the device\n' >&2; exit 1"
 
   # Act
   run disk_test_call disk_create_partition "${DEVICE}" 1073741824
@@ -170,4 +170,21 @@ exec \"\$REAL\" \"\$@\""
   # Assert
   [[ "${status}" -eq 1 ]]
   [[ "${output}" == *"failed to format partition"* ]]
+  [[ "${output}" == *"the formatter said: mkfs.fat: unable to open the device"* ]]
+}
+
+@test "a format that fails once is tried again after the device settles on Linux" {
+  # Arrange
+  [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "macOS formats with diskutil"
+  SHIMS="${WORK}/shims"
+  disk_test_shim mkfs.fat "if [ -e '${WORK}/tried' ]; then exec \"\$REAL\" \"\$@\"; fi
+: >'${WORK}/tried'
+exit 1"
+
+  # Act
+  run disk_test_call disk_create_partition "${DEVICE}" 1073741824
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"Partition created (FAT16)"* ]]
 }

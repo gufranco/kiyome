@@ -19,7 +19,7 @@
 
 </div>
 
-一个命令，156 个测试，9 个 shell 模块，除 POSIX 系统外没有任何运行时依赖。`kiyome` 是日语"清め"，意为净化。它的姊妹工具 [kakikomi](https://github.com/gufranco/kakikomi) 用来写入磁盘镜像。
+一个命令，157 个测试，9 个 shell 模块，除 POSIX 系统外没有任何运行时依赖。`kiyome` 是日语"清め"，意为净化。它的姊妹工具 [kakikomi](https://github.com/gufranco/kakikomi) 用来写入磁盘镜像。
 
 ---
 
@@ -170,7 +170,7 @@ kiyome 先测量磁盘自身的速度，再据此给每次传输设定期限。�
 | 命令 | 说明 |
 |:--------|:------------|
 | `make lint` | 对每个脚本和补全运行 ShellCheck，用 mandoc 检查 man 手册，并检查没有函数被重复定义 |
-| `make test` | 在系统 `sh` 下运行 156 个 `bats` 测试 |
+| `make test` | 在系统 `sh` 下运行 157 个 `bats` 测试 |
 | `make test-all` | 在每个已安装的 shell 下运行同样的测试 |
 | `make test-linux` | 从 Mac 在特权 Ubuntu 容器中运行同样的测试 |
 | `make coverage` | 在这台 Mac 和同一容器中用 bashcov 测量行覆盖率并合并，CI 要求 100% |

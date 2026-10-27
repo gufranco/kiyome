@@ -88,17 +88,25 @@ disk_format_linux() {
   fi
 
   disk_fl_ok=1
-  case "$2" in
-    FAT16) sudo mkfs.fat -F 16 -n "$3" "${disk_fl_part}" >/dev/null 2>&1 || disk_fl_ok=0 ;;
-    FAT32) sudo mkfs.fat -F 32 -n "$3" "${disk_fl_part}" >/dev/null 2>&1 || disk_fl_ok=0 ;;
-    *) sudo mkfs.exfat -n "$3" "${disk_fl_part}" >/dev/null 2>&1 || disk_fl_ok=0 ;;
-  esac
+  if ! disk_fl_said="$(disk_make_filesystem "${disk_fl_part}" "$2" "$3" 2>&1 >/dev/null)"; then
+    disk_cmd_exists udevadm && sudo udevadm settle >/dev/null 2>&1
+    disk_fl_said="$(disk_make_filesystem "${disk_fl_part}" "$2" "$3" 2>&1 >/dev/null)" || disk_fl_ok=0
+  fi
   if [ "${disk_fl_ok}" -eq 1 ]; then
     disk_success "Partition created ($2)"
     return 0
   fi
   disk_error "failed to format partition."
+  [ -n "${disk_fl_said}" ] && disk_error "the formatter said: ${disk_fl_said}"
   return 1
+}
+
+disk_make_filesystem() {
+  case "$2" in
+    FAT16) sudo mkfs.fat -F 16 -n "$3" "$1" ;;
+    FAT32) sudo mkfs.fat -F 32 -n "$3" "$1" ;;
+    *) sudo mkfs.exfat -n "$3" "$1" ;;
+  esac
 }
 
 disk_create_partition() {
