@@ -15,7 +15,7 @@ fake_tool() {
   local path="$1"
   local text="$2"
   mkdir -p "${path%/*}"
-  printf '#!/bin/sh\nprintf "%%s\\n" "%s"\nexit 1\n' "${text}" >"${path}"
+  printf '#!/bin/sh\n{ set +x; } 2>/dev/null\nprintf "%%s\\n" "%s"\nexit 1\n' "${text}" >"${path}"
   chmod +x "${path}"
   printf '%s\n' "${path}"
 }
