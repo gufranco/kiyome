@@ -1,5 +1,18 @@
 # Changelog
 
+# [1.1.0](https://github.com/gufranco/kiyome/compare/v1.0.0...v1.1.0) (2026-10-28)
+
+
+### Bug Fixes
+
+* **create:** retry a failed format and say why ([560ab33](https://github.com/gufranco/kiyome/commit/560ab330dc4a39b537c42010ee1a22c787124cff))
+
+
+### Features
+
+* **cli:** follow the family command-line contract ([58fc9ad](https://github.com/gufranco/kiyome/commit/58fc9adab804593675fdcb52bbebd1f4bb5c3e22))
+* **doctor:** name the flavor of each core tool ([9962c0a](https://github.com/gufranco/kiyome/commit/9962c0a9e3b03c25adc89e0a742a3bef55df0766))
+
 # 1.0.0 (2026-10-26)
 
 
