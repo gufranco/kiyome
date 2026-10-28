@@ -159,9 +159,9 @@ kiyome 先测量磁盘自身的速度，再据此给每次传输设定期限。�
 
 ## 可移植性
 
-全部代码都是 POSIX `sh`，ShellCheck `-o all` 零发现，没有禁用任何检查。测试套件在 macOS 的 `/bin/sh`、`dash`、`bash`、`bash --posix` 和 `zsh` 下运行，也在特权容器中的 Ubuntu 上以相同的 shell 运行。
+全部代码都是 POSIX `sh`，ShellCheck `-o all` 零发现，没有禁用任何检查。测试套件在 macOS 的 `/bin/sh` 和 `dash`、系统自带的 bash 3.2 和 zsh 以及 Homebrew 的最新 bash 和 zsh 下运行，也在特权容器中的 Ubuntu 上以 `dash`、`bash`、`bash --posix` 和 `zsh` 运行。
 
-它能在五种常用工具集上运行：Linux 上的 GNU 或 uutils coreutils，以及 macOS 自带的 BSD 工具、Homebrew 的 GNU 工具或 Homebrew 的 uutils 工具。CI 在每种工具集上运行全部测试，`kiyome doctor` 会列出每个核心工具的类型和版本，例如 `gnu 9.7`、`uutils 0.12.0` 或 `bsd 20200816`，让错误报告说明用的是哪些工具。
+它能在五种常用工具集上运行：Linux 上的 GNU 或 uutils coreutils，以及 macOS 自带的工具、Homebrew 中更新的版本或 Homebrew 的 uutils 工具。macOS 自带而 Homebrew 有更新版本的工具，从 bash 和 zsh 到 openssl 和 perl，两个版本都会测试。CI 在每种工具集上运行全部测试，`kiyome doctor` 会列出每个核心工具的类型和版本，例如 `gnu 9.7`、`uutils 0.12.0` 或 `bsd 20200816`，让错误报告说明用的是哪些工具。
 
 <a id="development"></a>
 
