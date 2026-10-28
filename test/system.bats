@@ -353,14 +353,16 @@ exec \"\$REAL\" \"\$@\""
   # Arrange
   local bin="${REPO_DIR}/bin"
   local -a shell_words
+  local version
   read -r -a shell_words <<<"${DISK_SHELL:-sh}"
+  version="$(sed -n 's/^KIYOME_VERSION="\(.*\)"$/\1/p' "${REPO_DIR}/lib/core.sh")"
 
   # Act
   run bash -c 'cd "$1" && shift && PATH="$PWD:$PATH" "$@" kiyome version' _ "${bin}" "${shell_words[@]}"
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  [[ "${lines[0]}" == "kiyome 1.0.0" ]]
+  [[ "${lines[0]}" == "kiyome ${version}" ]]
 }
 
 @test "kiyome goes on when the drive gives no write-protect answer" {
