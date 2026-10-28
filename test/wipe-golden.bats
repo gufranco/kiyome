@@ -35,6 +35,19 @@ disk_wipe_run() {
   disk_test_matches_golden "${name}" "${output}"
 }
 
+@test "the golden normalizer keeps only the finished progress line of a pass" {
+  # Arrange
+  local raw
+  raw="$(printf '%s\n' "Pass 1 of 1, writing 0xAA  12%  86.0 MiB/s  0m01s left" "Pass 1 of 1, writing 0xAA  87%  86.0 MiB/s  0m00s left" "Pass 1 of 1, writing 0xAA 100%  34.7 MiB/s  0m00s left")"
+
+  # Act
+  run disk_test_normalize <<<"${raw}"
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == "Pass 1 of 1, writing 0xAA 100%  RATE  T left" ]]
+}
+
 @test "kiyome leaves every byte of the device zero" {
   # Arrange
   dd if=/dev/urandom of="${IMAGE}" bs=512 count=16 conv=notrunc 2>/dev/null

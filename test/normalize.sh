@@ -4,6 +4,7 @@ sed -E \
   -e '/answered too fast to time/d' \
   -e '/Speed is not being watched on this disk/d' \
   -e '/^.*Measured (read|write): /d' \
+  -e '/^Pass [0-9]+ of [0-9]+, .* [0-9]{1,2}%  /d' \
   -e 's#/dev/r?disk[0-9]+#DEV#g' \
   -e 's#/dev/loop[0-9]+#DEV#g' \
   -e 's/[0-9.]+ (B|KiB|MiB|GiB)\/s/RATE/g' \
