@@ -1,11 +1,13 @@
 SHELL := /bin/sh
 PREFIX ?= $(HOME)/.local
+SCRIPTS := bin/kiyome lib/*.sh scripts/*.sh test/*.sh test/*.bash test/*.bats test/shim/sudo
 
-.PHONY: help lint test test-all test-linux coverage check install
+.PHONY: help fmt lint test test-all test-linux coverage check install
 
 help:
 	@echo "targets:"
-	@echo "  lint        shellcheck -o all at zero findings"
+	@echo "  fmt         format every script with shfmt -i 2"
+	@echo "  lint        shfmt, shellcheck -o all and mandoc at zero findings"
 	@echo "  test        bats suites under the system sh"
 	@echo "  test-all    bats suites under every installed shell"
 	@echo "  test-linux  the same suites in a privileged Ubuntu container"
@@ -13,7 +15,11 @@ help:
 	@echo "  check       lint and test"
 	@echo "  install     install the tool, man page and completions under PREFIX (default ~/.local)"
 
+fmt:
+	shfmt -i 2 -w $(SCRIPTS)
+
 lint:
+	shfmt -i 2 -d $(SCRIPTS)
 	shellcheck -x -s sh -o all bin/kiyome lib/*.sh scripts/*.sh
 	sh scripts/check-names.sh
 	shellcheck -x -o all test/*.sh test/*.bash test/*.bats test/shim/sudo
