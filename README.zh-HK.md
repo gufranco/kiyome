@@ -168,13 +168,14 @@ kiyome 會先量度磁碟本身的速度，再根據結果為每次傳輸設定�
 
 | 指令 | 說明 |
 |:--------|:------------|
-| `make lint` | 對每個腳本和自動補全執行 ShellCheck，用 mandoc 檢查 man 說明頁，並檢查沒有函數被重複定義 |
-| `make test` | 在系統 `sh` 下執行 166 個 `bats` 測試 |
-| `make test-all` | 在每個已安裝的 shell 下執行相同測試 |
-| `make test-linux` | 從 Mac 在特權 Ubuntu 容器內執行相同測試 |
-| `make coverage` | 在這部 Mac 和同一個容器內用 bashcov 量度行覆蓋率並合併，CI 要求 100% |
+| `make fmt` | 用 shfmt 格式化所有腳本 |
+| `make lint` | 執行 shfmt，對所有腳本、測試和自動補全執行 ShellCheck，用 mandoc 檢查 man 說明頁 |
+| `make test` | 在系統 `sh` 下執行 `bats` 測試 |
+| `make test-all` | 在每種 shell 下執行同樣的測試，macOS 上包括 bash 和 zsh 的兩個版本 |
+| `make test-linux` | 在 Ubuntu 容器中執行同樣的測試 |
+| `make coverage` | 合併這部 Mac 與 Ubuntu 容器中的 bashcov 行覆蓋率，以及 CI 強制的 100% 門檻 |
 
-測試用 `hdiutil` 或 `losetup` 掛接以檔案為後端的磁碟，並真實地抹除。CI 在 Ubuntu 和 macOS 上執行。每次推送到 `main` 都會執行 semantic-release：`feat` 或 `fix` commit 會發佈新版本，更新 [`lib/core.sh`](lib/core.sh) 內的 `KIYOME_VERSION` 和 CHANGELOG，並更新 Homebrew formula。
+測試用 `hdiutil` 或 `losetup` 掛接以檔案為後端的磁碟，並真實地抹除。CI 在 Ubuntu 和 macOS 上執行。推送到 `main` 且 CI 通過後會執行 semantic-release：`feat` 或 `fix` commit 會發佈新版本，更新 [`lib/core.sh`](lib/core.sh) 內的 `KIYOME_VERSION` 和 CHANGELOG，並更新 Homebrew formula。
 
 ## 授權
 

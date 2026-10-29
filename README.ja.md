@@ -168,13 +168,14 @@ Linux の GNU coreutils と uutils coreutils、macOS 標準のツール、その
 
 | コマンド | 説明 |
 |:--------|:------------|
-| `make lint` | すべてのスクリプトと補完にShellCheck、manページにmandocを実行し、関数が二重に定義されていないことを確認します |
-| `make test` | システムの`sh`で166件の`bats`テスト |
-| `make test-all` | インストール済みのすべてのシェルで同じテスト |
-| `make test-linux` | Macから、特権付きUbuntuコンテナで同じテスト |
-| `make coverage` | このMacと同じコンテナでbashcovによる行カバレッジを測定して統合します。CIは100%を必須にします |
+| `make fmt` | すべてのスクリプトを shfmt で整形 |
+| `make lint` | shfmt、すべてのスクリプト、テスト、補完に ShellCheck、man ページに mandoc |
+| `make test` | システムの `sh` で `bats` テスト |
+| `make test-all` | すべてのシェルで同じテスト。macOS では bash と zsh の両方の版を含みます |
+| `make test-linux` | Ubuntu コンテナで同じテスト |
+| `make coverage` | この Mac と Ubuntu コンテナでの bashcov の行カバレッジを合算し、CI が強制する 100% のゲート |
 
-テストは`hdiutil`や`losetup`でファイルを使ったディスクを接続し、実際に消去します。CIはUbuntuとmacOSで実行します。`main`へのpushごとにsemantic-releaseが動き、`feat`か`fix`のコミットがあればリリースを公開し、[`lib/core.sh`](lib/core.sh)の`KIYOME_VERSION`とCHANGELOGを更新して、Homebrewのformulaも更新します。
+テストは`hdiutil`や`losetup`でファイルを使ったディスクを接続し、実際に消去します。CIはUbuntuとmacOSで実行します。`main`へのpushでCIが通るとsemantic-releaseが動き、`feat`か`fix`のコミットがあればリリースを公開し、[`lib/core.sh`](lib/core.sh)の`KIYOME_VERSION`とCHANGELOGを更新して、Homebrewのformulaも更新します。
 
 ## ライセンス
 
