@@ -1,5 +1,22 @@
 # Changelog
 
+# [2.0.0](https://github.com/gufranco/kiyome/compare/v1.1.0...v2.0.0) (2026-10-29)
+
+
+* feat!: prefix every setting with KIYOME_ ([b4b5cb8](https://github.com/gufranco/kiyome/commit/b4b5cb88a7e9285e5497cefb8ab00a3a348bcd42))
+
+
+### Bug Fixes
+
+* poll a bounded command within milliseconds ([249df52](https://github.com/gufranco/kiyome/commit/249df524d5decd344d5f161e3447c0958662a64c))
+
+
+### BREAKING CHANGES
+
+* PASSES, CREATE, ALLOW_INTERNAL and the tuning variables
+are no longer read. Use KIYOME_PASSES, KIYOME_CREATE,
+KIYOME_ALLOW_INTERNAL and the KIYOME_ forms of the tuning variables.
+
 # [1.1.0](https://github.com/gufranco/kiyome/compare/v1.0.0...v1.1.0) (2026-10-28)
 
 
