@@ -99,17 +99,20 @@ disk_bounded() {
 
   "$@" &
   disk_b_pid="$!"
+  disk_b_limit=$((disk_b_seconds * 1000))
   disk_b_waited=0
+  disk_b_step=10
   while sudo -n kill -0 "${disk_b_pid}" 2>/dev/null; do
-    if [ "${disk_b_waited}" -ge "${disk_b_seconds}" ]; then
+    if [ "${disk_b_waited}" -ge "${disk_b_limit}" ]; then
       sudo -n kill -TERM "${disk_b_pid}" 2>/dev/null
       sleep 1
       sudo -n kill -KILL "${disk_b_pid}" 2>/dev/null
       wait "${disk_b_pid}" 2>/dev/null
       return 124
     fi
-    sleep 1
-    disk_b_waited=$((disk_b_waited + 1))
+    sleep "$(printf '%d.%03d' "$((disk_b_step / 1000))" "$((disk_b_step % 1000))")"
+    disk_b_waited=$((disk_b_waited + disk_b_step))
+    [ "${disk_b_step}" -ge 500 ] || disk_b_step=$((disk_b_step * 2))
   done
   wait "${disk_b_pid}"
 }

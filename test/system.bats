@@ -74,6 +74,23 @@ on_terminal() {
   [[ "${status}" -eq 0 ]]
 }
 
+@test "a bounded command without timeout is checked within milliseconds, not once a second" {
+  # Arrange
+  local farm first second
+  farm="$(disk_test_farm timeout gtimeout)"
+  disk_test_shim sleep "printf '%s\\n' \"\$1\" >>'${WORK}/sleeps'
+exec \"\$REAL\" \"\$@\""
+
+  # Act
+  run disk_test_call_path "${SHIMS}:${farm}" disk_bounded 3 perl -e 'select(undef, undef, undef, 1)'
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  { read -r first; read -r second; } <"${WORK}/sleeps"
+  [[ "${first}" == "0.010" ]]
+  [[ "${second}" == "0.020" ]]
+}
+
 @test "a bounded command uses gtimeout when timeout is missing" {
   # Arrange
   disk_test_shim gtimeout "while [ \"\$#\" -gt 0 ]; do
