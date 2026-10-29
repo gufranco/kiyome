@@ -20,25 +20,25 @@ disk_media_class() {
 
 disk_partition_node() {
   case "$1" in
-    *[0-9]) printf '%sp1\n' "$1" ;;
-    *) printf '%s1\n' "$1" ;;
+  *[0-9]) printf '%sp1\n' "$1" ;;
+  *) printf '%s1\n' "$1" ;;
   esac
 }
 
 disk_format_floppy() {
   disk_ff_os="$(disk_os)"
   case "${disk_ff_os}" in
-    Darwin)
-      sudo newfs_msdos -F 12 -v "$2" "$1" >/dev/null 2>&1 && return 0
-      ;;
-    Linux)
-      if ! disk_cmd_exists mkfs.fat; then
-        disk_error "mkfs.fat is not installed. install the dosfstools package."
-        return 1
-      fi
-      sudo mkfs.fat -F 12 -n "$2" "$1" >/dev/null 2>&1 && return 0
-      ;;
-    *) ;;
+  Darwin)
+    sudo newfs_msdos -F 12 -v "$2" "$1" >/dev/null 2>&1 && return 0
+    ;;
+  Linux)
+    if ! disk_cmd_exists mkfs.fat; then
+      disk_error "mkfs.fat is not installed. install the dosfstools package."
+      return 1
+    fi
+    sudo mkfs.fat -F 12 -n "$2" "$1" >/dev/null 2>&1 && return 0
+    ;;
+  *) ;;
   esac
   disk_error "failed to format floppy."
   return 1
@@ -57,9 +57,9 @@ disk_format_darwin() {
 
 disk_format_linux() {
   case "$2" in
-    FAT16) disk_fl_type="06" disk_fl_tool="mkfs.fat" ;;
-    FAT32) disk_fl_type="0b" disk_fl_tool="mkfs.fat" ;;
-    *) disk_fl_type="07" disk_fl_tool="mkfs.exfat" ;;
+  FAT16) disk_fl_type="06" disk_fl_tool="mkfs.fat" ;;
+  FAT32) disk_fl_type="0b" disk_fl_tool="mkfs.fat" ;;
+  *) disk_fl_type="07" disk_fl_tool="mkfs.exfat" ;;
   esac
   if ! disk_cmd_exists sfdisk; then
     disk_error "sfdisk is not installed. install the fdisk package."
@@ -103,9 +103,9 @@ disk_format_linux() {
 
 disk_make_filesystem() {
   case "$2" in
-    FAT16) sudo mkfs.fat -F 16 -n "$3" "$1" ;;
-    FAT32) sudo mkfs.fat -F 32 -n "$3" "$1" ;;
-    *) sudo mkfs.exfat -n "$3" "$1" ;;
+  FAT16) sudo mkfs.fat -F 16 -n "$3" "$1" ;;
+  FAT32) sudo mkfs.fat -F 32 -n "$3" "$1" ;;
+  *) sudo mkfs.exfat -n "$3" "$1" ;;
   esac
 }
 
@@ -113,11 +113,11 @@ disk_create_partition() {
   disk_cp_media="$(disk_media_class "$2")"
   disk_cp_label="NO NAME"
   case "${disk_cp_media}" in
-    floppy) disk_cp_fs="FAT12" disk_cp_label="FLOPPY" ;;
-    zip) disk_cp_fs="FAT16" disk_cp_label="ZIP" ;;
-    small) disk_cp_fs="FAT16" ;;
-    medium) disk_cp_fs="FAT32" ;;
-    *) disk_cp_fs="ExFAT" ;;
+  floppy) disk_cp_fs="FAT12" disk_cp_label="FLOPPY" ;;
+  zip) disk_cp_fs="FAT16" disk_cp_label="ZIP" ;;
+  small) disk_cp_fs="FAT16" ;;
+  medium) disk_cp_fs="FAT32" ;;
+  *) disk_cp_fs="ExFAT" ;;
   esac
   [ "${DISK_FAMILY:-}" = "zip" ] && disk_cp_label="ZIP"
 
@@ -130,8 +130,7 @@ disk_create_partition() {
   fi
   disk_cp_os="$(disk_os)"
   case "${disk_cp_os}" in
-    Darwin) disk_format_darwin "$1" "${disk_cp_fs}" "${disk_cp_label}" ;;
-    *) disk_format_linux "$1" "${disk_cp_fs}" "${disk_cp_label}" ;;
+  Darwin) disk_format_darwin "$1" "${disk_cp_fs}" "${disk_cp_label}" ;;
+  *) disk_format_linux "$1" "${disk_cp_fs}" "${disk_cp_label}" ;;
   esac
 }
-

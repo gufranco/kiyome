@@ -34,32 +34,32 @@ disk_tool_flavor() {
   disk_tf_version="$(disk_flavor_version "${disk_tf_text}")"
   disk_tf_os="$(disk_os)"
   case "${disk_tf_text}" in
-    *uutils*) disk_tf_name=uutils ;;
-    *BusyBox*) disk_tf_name=busybox ;;
-    *GNU* | *GLIBC* | *"(coreutils)"* | *"(diffutils)"*) disk_tf_name=gnu ;;
-    *mawk*) disk_tf_name=mawk ;;
-    *"awk version"* | *"(Darwin)"*) disk_tf_name=bsd ;;
-    *)
-      disk_tf_version=""
-      case "$1:${disk_tf_os}" in
-        *uutils*:* | */cargo/*:*) disk_tf_name=uutils ;;
-        *:Darwin | *:*BSD) disk_tf_name=bsd ;;
-        *) disk_tf_name=unknown ;;
-      esac
-      ;;
+  *uutils*) disk_tf_name=uutils ;;
+  *BusyBox*) disk_tf_name=busybox ;;
+  *GNU* | *GLIBC* | *"(coreutils)"* | *"(diffutils)"*) disk_tf_name=gnu ;;
+  *mawk*) disk_tf_name=mawk ;;
+  *"awk version"* | *"(Darwin)"*) disk_tf_name=bsd ;;
+  *)
+    disk_tf_version=""
+    case "$1:${disk_tf_os}" in
+    *uutils*:* | */cargo/*:*) disk_tf_name=uutils ;;
+    *:Darwin | *:*BSD) disk_tf_name=bsd ;;
+    *) disk_tf_name=unknown ;;
+    esac
+    ;;
   esac
   printf '%s%s\n' "${disk_tf_name}" "${disk_tf_version:+ ${disk_tf_version}}"
 }
 
 disk_doctor_note() {
   case "${1##*/}" in
-    dd | cmp | od | awk | sed | sha256sum) disk_tool_flavor "$1" ;;
-    shasum)
-      disk_dn_raw="$("$1" --version 2>&1 </dev/null)" || true
-      disk_dn_version="$(disk_flavor_version "${disk_dn_raw}")"
-      printf 'perl%s\n' "${disk_dn_version:+ ${disk_dn_version}}"
-      ;;
-    *) ;;
+  dd | cmp | od | awk | sed | sha256sum) disk_tool_flavor "$1" ;;
+  shasum)
+    disk_dn_raw="$("$1" --version 2>&1 </dev/null)" || true
+    disk_dn_version="$(disk_flavor_version "${disk_dn_raw}")"
+    printf 'perl%s\n' "${disk_dn_version:+ ${disk_dn_version}}"
+    ;;
+  *) ;;
   esac
 }
 
@@ -151,15 +151,15 @@ disk_pick_single() {
 
 disk_cli_is_option() {
   case "$1" in
-    --* | -?*) return 0 ;;
-    *) return 1 ;;
+  --* | -?*) return 0 ;;
+  *) return 1 ;;
   esac
 }
 
 disk_cli_takes_value() {
   case " ${DISK_VALUE_OPTIONS} " in
-    *" $1 "*) return 0 ;;
-    *) return 1 ;;
+  *" $1 "*) return 0 ;;
+  *) return 1 ;;
   esac
 }
 
@@ -178,23 +178,23 @@ disk_cli_assign() {
 disk_cli_option() {
   DISK_CLI_USED=0
   case "$1" in
-    --*=*) disk_cli_assign "$1" ;;
-    --?*)
-      disk_option_flag "$1" && return 0
-      if ! disk_cli_takes_value "$1"; then
-        disk_cli_hint "unknown option '$1'"
-        return 1
-      fi
-      if [ "$2" -lt 1 ]; then
-        disk_cli_hint "option '$1' needs a value"
-        return 1
-      fi
-      DISK_CLI_USED=1
-      disk_option_value "$1" "$3"
-      ;;
-    *)
+  --*=*) disk_cli_assign "$1" ;;
+  --?*)
+    disk_option_flag "$1" && return 0
+    if ! disk_cli_takes_value "$1"; then
       disk_cli_hint "unknown option '$1'"
       return 1
-      ;;
+    fi
+    if [ "$2" -lt 1 ]; then
+      disk_cli_hint "option '$1' needs a value"
+      return 1
+    fi
+    DISK_CLI_USED=1
+    disk_option_value "$1" "$3"
+    ;;
+  *)
+    disk_cli_hint "unknown option '$1'"
+    return 1
+    ;;
   esac
 }

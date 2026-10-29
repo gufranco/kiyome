@@ -7,8 +7,8 @@ done
 
 disk_self="$0"
 case "${disk_self}" in
-  */*) ;;
-  *) disk_self="$(command -v -- "${disk_self}")" ;;
+*/*) ;;
+*) disk_self="$(command -v -- "${disk_self}")" ;;
 esac
 DISK_LIB="$(cd "${disk_self%/*}/../lib" && pwd)" || exit 1
 
@@ -67,9 +67,9 @@ USAGE
 
 disk_option_flag() {
   case "$1" in
-    --create) KIYOME_CREATE=y ;;
-    --allow-internal) KIYOME_ALLOW_INTERNAL=y ;;
-    *) return 1 ;;
+  --create) KIYOME_CREATE=y ;;
+  --allow-internal) KIYOME_ALLOW_INTERNAL=y ;;
+  *) return 1 ;;
   esac
   return 0
 }
@@ -182,21 +182,21 @@ disk_wipe_passes() {
 disk_wipe_eject() {
   disk_info "Ejecting $1..."
   case "${DISK_FAMILY}" in
-    floppy | superdisk)
-      if disk_release "$1" >/dev/null 2>&1; then
-        disk_success "Done. This drive has no software eject, so take the disk out now."
-      else
-        disk_warning "$1 is still mounted. remove the disk by hand once it is idle."
-      fi
-      ;;
-    *)
-      sync
-      if disk_bounded 30 sudo diskutil eject "$1" >/dev/null 2>&1 || disk_bounded 30 sudo eject "$1" >/dev/null 2>&1; then
-        disk_success "Ejected. $1 is safe to remove."
-      else
-        disk_warning "$1 did not eject. the wipe already finished, so remove it once the light stops."
-      fi
-      ;;
+  floppy | superdisk)
+    if disk_release "$1" >/dev/null 2>&1; then
+      disk_success "Done. This drive has no software eject, so take the disk out now."
+    else
+      disk_warning "$1 is still mounted. remove the disk by hand once it is idle."
+    fi
+    ;;
+  *)
+    sync
+    if disk_bounded 30 sudo diskutil eject "$1" >/dev/null 2>&1 || disk_bounded 30 sudo eject "$1" >/dev/null 2>&1; then
+      disk_success "Ejected. $1 is safe to remove."
+    else
+      disk_warning "$1 did not eject. the wipe already finished, so remove it once the light stops."
+    fi
+    ;;
   esac
   return 0
 }
@@ -223,10 +223,10 @@ disk_wipe_prepare() {
 
 disk_wipe_main() {
   case "${1:-}" in
-    help | -h | --help) disk_wipe_usage ;;
-    version | -V | --version) disk_cli_version ;;
-    doctor) disk_doctor ;;
-    *) disk_wipe_parse "$@" ;;
+  help | -h | --help) disk_wipe_usage ;;
+  version | -V | --version) disk_cli_version ;;
+  doctor) disk_doctor ;;
+  *) disk_wipe_parse "$@" ;;
   esac
 }
 

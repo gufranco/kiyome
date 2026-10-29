@@ -86,7 +86,10 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  { read -r first; read -r second; } <"${WORK}/sleeps"
+  {
+    read -r first
+    read -r second
+  } <"${WORK}/sleeps"
   [[ "${first}" == "0.010" ]]
   [[ "${second}" == "0.020" ]]
 }

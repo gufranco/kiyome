@@ -82,8 +82,8 @@ disk_cmd_exists() {
 
 disk_is_uint() {
   case "$1" in
-    '' | *[!0-9]*) return 1 ;;
-    *) return 0 ;;
+  '' | *[!0-9]*) return 1 ;;
+  *) return 0 ;;
   esac
 }
 
@@ -258,19 +258,19 @@ disk_identity() {
   disk_id_model=""
   disk_id_os="$(disk_os)"
   case "${disk_id_os}" in
-    Darwin)
-      disk_id_model="$(disk_plist_value "$1" MediaName)"
-      ;;
-    Linux)
-      disk_id_name="${1##*/}"
-      disk_id_vendor="$(cat "/sys/block/${disk_id_name}/device/vendor" 2>/dev/null)"
-      disk_id_model="$(cat "/sys/block/${disk_id_name}/device/model" 2>/dev/null)"
-      if [ -z "${disk_id_vendor}" ] && [ -z "${disk_id_model}" ]; then
-        disk_id_vendor="$(lsblk -dno VENDOR "$1" 2>/dev/null)"
-        disk_id_model="$(lsblk -dno MODEL "$1" 2>/dev/null)"
-      fi
-      ;;
-    *) ;;
+  Darwin)
+    disk_id_model="$(disk_plist_value "$1" MediaName)"
+    ;;
+  Linux)
+    disk_id_name="${1##*/}"
+    disk_id_vendor="$(cat "/sys/block/${disk_id_name}/device/vendor" 2>/dev/null)"
+    disk_id_model="$(cat "/sys/block/${disk_id_name}/device/model" 2>/dev/null)"
+    if [ -z "${disk_id_vendor}" ] && [ -z "${disk_id_model}" ]; then
+      disk_id_vendor="$(lsblk -dno VENDOR "$1" 2>/dev/null)"
+      disk_id_model="$(lsblk -dno MODEL "$1" 2>/dev/null)"
+    fi
+    ;;
+  *) ;;
   esac
   printf '%s %s\n' "${disk_id_vendor}" "${disk_id_model}" |
     awk '{ $0 = toupper($0); $1 = $1; print }'
@@ -278,40 +278,40 @@ disk_identity() {
 
 disk_family_of() {
   case "$1" in
-    *"ZIP 100"* | *"ZIP 250"* | *"ZIP 750"* | *ZIP100* | *ZIP250* | *ZIP750*) printf 'zip\n' ;;
-    *"LS-120"* | *"LS-240"* | *SUPERDISK*) printf 'superdisk\n' ;;
-    *"JAZ "* | *JAZ1GB* | *JAZ2GB*) printf 'jaz\n' ;;
-    *"USB-FDU"* | *"FD-05"* | *"USB FDD"* | *FLOPPY*) printf 'floppy\n' ;;
-    *POCKETZIP* | *"CLIK!"*) printf 'pocketzip\n' ;;
-    *) printf '\n' ;;
+  *"ZIP 100"* | *"ZIP 250"* | *"ZIP 750"* | *ZIP100* | *ZIP250* | *ZIP750*) printf 'zip\n' ;;
+  *"LS-120"* | *"LS-240"* | *SUPERDISK*) printf 'superdisk\n' ;;
+  *"JAZ "* | *JAZ1GB* | *JAZ2GB*) printf 'jaz\n' ;;
+  *"USB-FDU"* | *"FD-05"* | *"USB FDD"* | *FLOPPY*) printf 'floppy\n' ;;
+  *POCKETZIP* | *"CLIK!"*) printf 'pocketzip\n' ;;
+  *) printf '\n' ;;
   esac
 }
 
 disk_fragile() {
   case "${DISK_FAMILY:-}" in
-    zip | jaz | pocketzip | floppy | superdisk) return 0 ;;
-    *) return 1 ;;
+  zip | jaz | pocketzip | floppy | superdisk) return 0 ;;
+  *) return 1 ;;
   esac
 }
 
 disk_head_crash_family() {
   case "${DISK_FAMILY:-}" in
-    zip | jaz | pocketzip) return 0 ;;
-    *) return 1 ;;
+  zip | jaz | pocketzip) return 0 ;;
+  *) return 1 ;;
   esac
 }
 
 disk_error_class() {
   case "$1" in
-    *"Device not configured"* | *"No such device"* | *"No such file or directory"* | \
-      *"Operation not permitted"* | *"No medium found"* | *"not ready"* | *"Not ready"* | \
-      *ENXIO* | *ENODEV*)
-      printf 'bus\n'
-      ;;
-    *"Input/output error"* | *"I/O error"* | *EIO* | *"Media error"* | *"medium error"*)
-      printf 'media\n'
-      ;;
-    *) printf 'other\n' ;;
+  *"Device not configured"* | *"No such device"* | *"No such file or directory"* | \
+    *"Operation not permitted"* | *"No medium found"* | *"not ready"* | *"Not ready"* | \
+    *ENXIO* | *ENODEV*)
+    printf 'bus\n'
+    ;;
+  *"Input/output error"* | *"I/O error"* | *EIO* | *"Media error"* | *"medium error"*)
+    printf 'media\n'
+    ;;
+  *) printf 'other\n' ;;
   esac
 }
 
@@ -320,14 +320,14 @@ disk_device_gone() {
   [ -b "$1" ] || [ -c "$1" ] || return 0
   disk_dg_os="$(disk_os)"
   case "${disk_dg_os}" in
-    Darwin)
-      [ -c "/dev/r${disk_dg_name}" ] || return 0
-      disk_bounded 10 diskutil info "$1" >/dev/null 2>&1 || return 0
-      ;;
-    Linux)
-      disk_bounded 10 sudo blockdev --getsize64 "$1" >/dev/null 2>&1 || return 0
-      ;;
-    *) ;;
+  Darwin)
+    [ -c "/dev/r${disk_dg_name}" ] || return 0
+    disk_bounded 10 diskutil info "$1" >/dev/null 2>&1 || return 0
+    ;;
+  Linux)
+    disk_bounded 10 sudo blockdev --getsize64 "$1" >/dev/null 2>&1 || return 0
+    ;;
+  *) ;;
   esac
   return 1
 }
@@ -336,14 +336,14 @@ disk_sector_bytes() {
   disk_sb_bytes=""
   disk_sb_os="$(disk_os)"
   case "${disk_sb_os}" in
-    Darwin)
-      disk_sb_bytes="$(disk_info_field "$1" 'Device Block Size')"
-      disk_sb_bytes="${disk_sb_bytes%% *}"
-      ;;
-    Linux)
-      disk_sb_bytes="$(sudo blockdev --getss "$1" 2>/dev/null)"
-      ;;
-    *) ;;
+  Darwin)
+    disk_sb_bytes="$(disk_info_field "$1" 'Device Block Size')"
+    disk_sb_bytes="${disk_sb_bytes%% *}"
+    ;;
+  Linux)
+    disk_sb_bytes="$(sudo blockdev --getss "$1" 2>/dev/null)"
+    ;;
+  *) ;;
   esac
   if ! disk_is_uint "${disk_sb_bytes}" || [ "${disk_sb_bytes}" -lt 512 ]; then
     disk_sb_bytes=512
@@ -355,14 +355,14 @@ disk_size_bytes() {
   disk_sz_bytes=""
   disk_sz_os="$(disk_os)"
   case "${disk_sz_os}" in
-    Darwin)
-      disk_sz_text="$(diskutil info "$1" 2>/dev/null)"
-      disk_sz_bytes="$(printf '%s\n' "${disk_sz_text}" | sed -nE 's/.*Disk Size:.*\(([0-9]+) Bytes\).*/\1/p')"
-      ;;
-    Linux)
-      disk_sz_bytes="$(sudo blockdev --getsize64 "$1" 2>/dev/null)"
-      ;;
-    *) ;;
+  Darwin)
+    disk_sz_text="$(diskutil info "$1" 2>/dev/null)"
+    disk_sz_bytes="$(printf '%s\n' "${disk_sz_text}" | sed -nE 's/.*Disk Size:.*\(([0-9]+) Bytes\).*/\1/p')"
+    ;;
+  Linux)
+    disk_sz_bytes="$(sudo blockdev --getsize64 "$1" 2>/dev/null)"
+    ;;
+  *) ;;
   esac
   printf '%s\n' "${disk_sz_bytes}"
 }
@@ -370,23 +370,23 @@ disk_size_bytes() {
 disk_writable_media() {
   disk_wm_os="$(disk_os)"
   case "${disk_wm_os}" in
-    Darwin)
-      disk_wm_answer="$(disk_plist_value "$1" WritableMedia)"
-      case "${disk_wm_answer}" in
-        false) return 1 ;;
-        true) return 0 ;;
-        *) ;;
-      esac
-      ;;
-    Linux)
-      disk_wm_answer="$(sudo blockdev --getro "$1" 2>/dev/null)"
-      case "${disk_wm_answer}" in
-        1) return 1 ;;
-        0) return 0 ;;
-        *) ;;
-      esac
-      ;;
+  Darwin)
+    disk_wm_answer="$(disk_plist_value "$1" WritableMedia)"
+    case "${disk_wm_answer}" in
+    false) return 1 ;;
+    true) return 0 ;;
     *) ;;
+    esac
+    ;;
+  Linux)
+    disk_wm_answer="$(sudo blockdev --getro "$1" 2>/dev/null)"
+    case "${disk_wm_answer}" in
+    1) return 1 ;;
+    0) return 0 ;;
+    *) ;;
+    esac
+    ;;
+  *) ;;
   esac
   return 2
 }
@@ -399,9 +399,9 @@ disk_resolve() {
     disk_rs_disk="${disk_rs_input}"
   elif [ -d "${disk_rs_input}" ]; then
     case "${disk_rs_os}" in
-      Darwin) disk_rs_disk="$(disk_info_field "${disk_rs_input}" 'Device Node')" ;;
-      Linux) disk_rs_disk="$(findmnt -n -o SOURCE "${disk_rs_input}" 2>/dev/null)" ;;
-      *) ;;
+    Darwin) disk_rs_disk="$(disk_info_field "${disk_rs_input}" 'Device Node')" ;;
+    Linux) disk_rs_disk="$(findmnt -n -o SOURCE "${disk_rs_input}" 2>/dev/null)" ;;
+    *) ;;
     esac
     if [ -z "${disk_rs_disk}" ]; then
       disk_error "no device found for mount point: ${disk_rs_input}"
@@ -413,21 +413,21 @@ disk_resolve() {
   fi
 
   case "${disk_rs_os}" in
-    Darwin)
-      disk_rs_whole="$(disk_info_field "${disk_rs_disk}" 'Part of Whole')"
-      [ -n "${disk_rs_whole}" ] && disk_rs_disk="/dev/${disk_rs_whole}"
-      ;;
-    Linux)
-      disk_rs_type="$(lsblk -dno TYPE "${disk_rs_disk}" 2>/dev/null)"
-      [ "${disk_rs_type}" = "part" ] || {
-        printf '%s\n' "${disk_rs_disk}"
-        return 0
-      }
-      disk_rs_parent="$(lsblk -no PKNAME "${disk_rs_disk}" 2>/dev/null)"
-      disk_rs_parent="$(printf '%s\n' "${disk_rs_parent}" | sed -n '1p')"
-      [ -n "${disk_rs_parent}" ] && disk_rs_disk="/dev/${disk_rs_parent}"
-      ;;
-    *) ;;
+  Darwin)
+    disk_rs_whole="$(disk_info_field "${disk_rs_disk}" 'Part of Whole')"
+    [ -n "${disk_rs_whole}" ] && disk_rs_disk="/dev/${disk_rs_whole}"
+    ;;
+  Linux)
+    disk_rs_type="$(lsblk -dno TYPE "${disk_rs_disk}" 2>/dev/null)"
+    [ "${disk_rs_type}" = "part" ] || {
+      printf '%s\n' "${disk_rs_disk}"
+      return 0
+    }
+    disk_rs_parent="$(lsblk -no PKNAME "${disk_rs_disk}" 2>/dev/null)"
+    disk_rs_parent="$(printf '%s\n' "${disk_rs_parent}" | sed -n '1p')"
+    [ -n "${disk_rs_parent}" ] && disk_rs_disk="/dev/${disk_rs_parent}"
+    ;;
+  *) ;;
   esac
   printf '%s\n' "${disk_rs_disk}"
 }
