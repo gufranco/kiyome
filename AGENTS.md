@@ -50,7 +50,7 @@ kakikomi is the closest sibling. Both keep the same `disk_` function names in [`
 
 ## Release and Homebrew
 
-- Every push to `main` runs semantic-release. A `feat` or `fix` commit publishes a release, stamps `KIYOME_VERSION` in [`lib/core.sh`](lib/core.sh) and updates the CHANGELOG.
+- Once CI passes on a push to `main`, [`.github/workflows/release.yml`](.github/workflows/release.yml) runs semantic-release. A `feat` or `fix` commit publishes a release, stamps `KIYOME_VERSION` in [`lib/core.sh`](lib/core.sh) and updates the CHANGELOG.
 - The Homebrew formula is not in this repository. It lives in [gufranco/homebrew-tap](https://github.com/gufranco/homebrew-tap) as `Formula/kiyome.rb`, next to the formulas for the rest of the family and for other projects.
 - After a release, [`.github/workflows/formula.yml`](.github/workflows/formula.yml) sends a `formula-bump` dispatch to the tap with the new tag. The tap rewrites the formula's `url` and `sha256` itself, so neither is edited by hand.
 - The dispatch authenticates as a GitHub App through the `TAP_APP_ID` and `TAP_APP_PRIVATE_KEY` secrets of this repository.
