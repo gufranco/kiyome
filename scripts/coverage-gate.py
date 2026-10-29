@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 
 ARTIFACT = re.compile(r"\A\s*(done\s*[<>].*|[^()\s]+\)\s*;;|\)(\s+\S*>\S*)*\s*&?|.*\|\s*\\)\s*\Z")
+HEREDOC = re.compile(r"<<-?\s*'?([A-Za-z_][A-Za-z0-9_]*)'?\s*$")
 Counts = list[int | None]
 Line = tuple[str, int, int, str]
 
@@ -32,12 +33,28 @@ def merged_lines(paths: list[str], pattern: re.Pattern[str]) -> dict[str, Counts
     return merged
 
 
+def heredoc_lines(source: list[str]) -> set[int]:
+    data: set[int] = set()
+    terminator = None
+    for index, line in enumerate(source):
+        if terminator is not None:
+            data.add(index)
+            if line.strip() == terminator:
+                terminator = None
+            continue
+        match = HEREDOC.search(line)
+        if match:
+            terminator = match.group(1)
+    return data
+
+
 def relevant_lines(key: str, counts: Counts) -> list[Line]:
     source = Path(key).read_text(encoding="utf-8").splitlines()
+    data = heredoc_lines(source)
     return [
         (key, index + 1, count, source[index].strip())
         for index, count in enumerate(counts)
-        if count is not None and not ARTIFACT.match(source[index])
+        if count is not None and index not in data and not ARTIFACT.match(source[index])
     ]
 
 
