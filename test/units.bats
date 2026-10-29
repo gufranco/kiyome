@@ -303,7 +303,7 @@ source "${BATS_TEST_DIRNAME:-.}/helpers.bash"
 
 @test "an unknown system cannot release a disk" {
   # Arrange
-  export DISK_OS=FreeBSD
+  export KIYOME_OS=FreeBSD
 
   # Act
   run disk_test_call disk_release /dev/da0
@@ -314,7 +314,7 @@ source "${BATS_TEST_DIRNAME:-.}/helpers.bash"
 
 @test "an unknown system treats every disk as internal" {
   # Arrange
-  export DISK_OS=FreeBSD
+  export KIYOME_OS=FreeBSD
 
   # Act
   run disk_test_call disk_is_internal /dev/da0

@@ -7,9 +7,9 @@ source "${BATS_TEST_DIRNAME:-.}/fakes.bash"
 
 setup() {
   WORK="$(mktemp -d "${BATS_TMPDIR:-/tmp}/disk-hardware.XXXXXX")"
-  export SLOW_FACTOR=50
-  if [[ "${DISK_TEST_OS}" == "Linux" ]]; then
-    export ALLOW_INTERNAL=y
+  export KIYOME_SLOW_FACTOR=50
+  if [[ "${KIYOME_TEST_OS}" == "Linux" ]]; then
+    export KIYOME_ALLOW_INTERNAL=y
   fi
   IMAGE="${WORK}/target.img"
   disk_test_fill "${IMAGE}" 2 '\252'
@@ -122,7 +122,7 @@ exec \"\$REAL\" \"\$@\""
 
 @test "kiyome leaves a floppy for the hand to remove" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Darwin" ]] || skip "Linux ejects every drive the same way"
+  [[ "${KIYOME_TEST_OS}" == "Darwin" ]] || skip "Linux ejects every drive the same way"
   fake_identity_as "TEAC USB-FDU"
 
   # Act
@@ -149,7 +149,7 @@ exec \"\$REAL\" \"\$@\""
 
 @test "kiyome stops when the mount state cannot be read" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "macOS reads the mount table directly"
+  [[ "${KIYOME_TEST_OS}" == "Linux" ]] || skip "macOS reads the mount table directly"
   fake_flag mount-state-fails
 
   # Act

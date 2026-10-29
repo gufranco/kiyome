@@ -5,8 +5,8 @@ tests_dir="$(cd "$(dirname "$0")" && pwd)"
 os="$(uname -s)"
 failed=0
 
-if [ -n "${DISK_SHELLS:-}" ]; then
-  shells="${DISK_SHELLS}"
+if [ -n "${KIYOME_TEST_SHELLS:-}" ]; then
+  shells="${KIYOME_TEST_SHELLS}"
 elif [ "${os}" = "Darwin" ]; then
   brew_bin="$(brew --prefix 2>/dev/null || printf /opt/homebrew)/bin"
   shells="/bin/sh|dash|/bin/bash|/bin/bash --posix|${brew_bin}/bash|${brew_bin}/bash --posix|/bin/zsh|${brew_bin}/zsh"
@@ -23,7 +23,7 @@ IFS='|'
 for shell in ${shells}; do
   IFS="${old_ifs}"
   printf '== %s ==\n' "${shell}"
-  if ! DISK_SHELL="${shell}" bats --print-output-on-failure "$@"; then
+  if ! KIYOME_TEST_SHELL="${shell}" bats --print-output-on-failure "$@"; then
     failed=$((failed + 1))
   fi
   IFS='|'

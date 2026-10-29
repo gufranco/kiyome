@@ -9,12 +9,49 @@ disk_version() {
   printf '%s %s\n' "$1" "${KIYOME_VERSION}"
 }
 
+disk_wrap() {
+  awk -v width="${DISK_WIDTH}" -v indent="$1" '
+    function pad(n,   s) {
+      s = ""
+      while (n-- > 0) { s = s " " }
+      return s
+    }
+    length($0) <= width { print; next }
+    {
+      match($0, /^ */)
+      n = split($0, word, " ")
+      out = substr($0, 1, RLENGTH) word[1]
+      for (i = 2; i <= n; i++) {
+        if (length(out) + 1 + length(word[i]) > width) {
+          print out
+          out = pad(indent) word[i]
+        } else {
+          out = out " " word[i]
+        }
+      }
+      print out
+    }'
+}
+
+disk_terminal() {
+  [ "${KIYOME_TERMINAL:-}" = 1 ] || [ -t 1 ]
+}
+
+disk_say() {
+  disk_sy_text="$2"
+  if [ "${#disk_sy_text}" -le "${DISK_WIDTH}" ] || ! disk_terminal; then
+    printf '%s\n' "${disk_sy_text}"
+    return 0
+  fi
+  printf '%s\n' "${disk_sy_text}" | disk_wrap "$1"
+}
+
 disk_log() {
-  printf '%s%s\n' "$1" "$2"
+  disk_say 0 "$1$2"
 }
 
 disk_info() {
-  disk_log "" "$*"
+  disk_say 8 "$*"
 }
 
 disk_success() {

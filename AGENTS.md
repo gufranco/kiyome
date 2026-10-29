@@ -30,7 +30,7 @@ kakikomi is the closest sibling. Both keep the same `disk_` function names in [`
 | `make coverage` | bashcov on this Mac and in the container, merged, gated at 100% |
 | `make install` | Installs the tool, man page and completions under `~/.local` |
 
-`DISK_TEST_RECORD=1` rewrites the golden transcripts in [`test/golden/`](test/golden) from a fresh run; record on macOS and in the container, then read the diff.
+`KIYOME_TEST_RECORD=1` rewrites the golden transcripts in [`test/golden/`](test/golden) from a fresh run; record on macOS and in the container, then read the diff.
 
 ## Hard rules
 
@@ -41,6 +41,8 @@ kakikomi is the closest sibling. Both keep the same `disk_` function names in [`
 - [CLAUDE.md](CLAUDE.md) holds only `@AGENTS.md`. Rules for this repository live here, never there.
 - A disk is named by its device, such as `/dev/disk4`, or by any volume mounted from it, such as `/Volumes/USB`. Every argument that takes a disk resolves a volume to the whole disk behind it, and the README shows both forms.
 - POSIX `sh` only. Every function-scoped variable carries the function's prefix, because `sh` has no `local`.
+- Every environment variable kiyome reads is named `KIYOME_<NAME>`, such as `KIYOME_PASSES`, test switches included (owner's rule, 2026-10-28). Globals carry `DISK_`, and [`bin/kiyome`](bin/kiyome) clears every inherited `DISK_` variable before it sources the modules, so the environment never sets one. [`scripts/check-names.sh`](scripts/check-names.sh) fails lint on any other name.
+- Every line kiyome prints to a terminal fits in 80 columns (owner's rule, 2026-10-28). Text with a path or another value of any length goes through `disk_info`, `disk_say`, `disk_error` or `disk_warning`, which wrap between words when stdout is a terminal and keep a message on one line in a pipe; `KIYOME_TERMINAL=1` makes a test behave as a terminal. [`test/width.bats`](test/width.bats) checks help and version. `doctor` is exempt and keeps one row per tool at any width.
 - No comments in source. Tool directives and the `Arrange`, `Act`, `Assert` markers in tests are the only exceptions.
 - Tests wipe real file-backed disks attached with `hdiutil` or `losetup`. Faults come only from small wrappers placed on `PATH`.
 - A new option goes into the help page, the man page and all three completions in the same commit; a test fails otherwise.

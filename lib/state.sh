@@ -4,7 +4,8 @@ LC_ALL=C
 export LC_ALL
 
 : "${DISK_LIB:=}"
-: "${DISK_OS:=}"
+: "${DISK_OS:=${KIYOME_OS:-}}"
+: "${DISK_WIDTH:=80}"
 : "${DISK_TMPDIR:=}"
 : "${DISK_ERRFILE:=}"
 : "${DISK_LAST_ERROR:=}"

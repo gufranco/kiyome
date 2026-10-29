@@ -1,6 +1,10 @@
 #!/bin/sh
 [ -n "${ZSH_VERSION:-}" ] && emulate sh
 
+for disk_inherited in $(env | sed -n 's/^\(DISK_[A-Za-z0-9_]*\)=.*/\1/p'); do
+  unset "${disk_inherited}"
+done
+
 disk_self="$0"
 case "${disk_self}" in
   */*) ;;
@@ -26,7 +30,7 @@ DISK_PROG=kiyome
 
 disk_wipe_usage() {
   cat <<'USAGE'
-kiyome - overwrite a disk with five verified patterns, reporting any bad bit line
+kiyome - overwrite a disk with five verified patterns, naming any bad bit line
 
 usage:
   kiyome                              ask for the disk and the number of passes
@@ -42,8 +46,8 @@ options:
   --allow-internal    allow an internal disk. the system disk is always refused
 
 environment:
-  PASSES=N, CREATE=y and ALLOW_INTERNAL=y set the same options. an option on
-  the command line wins.
+  KIYOME_PASSES=N, KIYOME_CREATE=y and KIYOME_ALLOW_INTERNAL=y set the same
+  options. an option on the command line wins.
 
 notes:
   A disk is named by its device, such as /dev/disk4, or by any volume mounted
@@ -63,22 +67,22 @@ USAGE
 
 disk_option_flag() {
   case "$1" in
-    --create) CREATE=y ;;
-    --allow-internal) ALLOW_INTERNAL=y ;;
+    --create) KIYOME_CREATE=y ;;
+    --allow-internal) KIYOME_ALLOW_INTERNAL=y ;;
     *) return 1 ;;
   esac
   return 0
 }
 
 disk_option_value() {
-  PASSES="$2"
+  KIYOME_PASSES="$2"
   return 0
 }
 
 disk_wipe_ask() {
   disk_wk_disk="$(disk_pick_single "Wipe which disk? Number or name: ")" || return 1
-  if [ -z "${PASSES:-}" ]; then
-    PASSES="$(disk_prompt "Passes" 1)" || return 1
+  if [ -z "${KIYOME_PASSES:-}" ]; then
+    KIYOME_PASSES="$(disk_prompt "Passes" 1)" || return 1
   fi
   disk_wipe_run "${disk_wk_disk}"
 }
@@ -113,7 +117,7 @@ disk_wipe_plan() {
   disk_wpl_noun="passes"
   [ "$1" -eq 1 ] && disk_wpl_noun="pass"
   disk_info "Plan:   $1 ${disk_wpl_noun} of unique data, 0xAA, 0x55, 0xFF and 0x00, each read back"
-  if [ "${CREATE:-}" = "y" ]; then
+  if [ "${KIYOME_CREATE:-}" = "y" ]; then
     disk_info "        then a fresh FAT or exFAT filesystem, then eject"
   else
     disk_info "        then eject"
@@ -128,7 +132,7 @@ disk_wipe_summary() {
   disk_ws_parts="$(disk_partitions_text "$1")"
   if [ -n "${disk_ws_parts}" ]; then
     disk_info "        Everything on it is erased, including:"
-    printf '%s\n' "${disk_ws_parts}"
+    disk_say 10 "${disk_ws_parts}"
   fi
   disk_wipe_plan "$2"
   printf '\n'
@@ -267,7 +271,7 @@ disk_wipe_start() {
 }
 
 disk_wipe_run() {
-  disk_wipe_check_passes "${PASSES:-1}" || return 1
+  disk_wipe_check_passes "${KIYOME_PASSES:-1}" || return 1
   disk_wm_disk="$(disk_resolve "$1")" || return 1
   disk_refuse_target "${disk_wm_disk}" || return 1
   DISK_ERRFILE=""
@@ -275,7 +279,7 @@ disk_wipe_run() {
   DISK_LAST_DETAIL=""
   DISK_FAMILY=""
   DISK_ACTION_NOUN="wipe"
-  disk_wm_passes="${PASSES:-1}"
+  disk_wm_passes="${KIYOME_PASSES:-1}"
 
   disk_wipe_prepare "${disk_wm_disk}" "${disk_wm_passes}" || return 1
   disk_make_tmpdir kiyome || return 1
@@ -291,7 +295,7 @@ disk_wipe_run() {
   disk_drop_tmpdir
   [ "${disk_wm_status}" -ne 0 ] && return 1
 
-  if [ "${CREATE:-}" = "y" ] && ! disk_create_partition "${disk_wm_disk}" "${DISK_SIZE}"; then
+  if [ "${KIYOME_CREATE:-}" = "y" ] && ! disk_create_partition "${disk_wm_disk}" "${DISK_SIZE}"; then
     return 1
   fi
   disk_wipe_eject "${disk_wm_disk}"

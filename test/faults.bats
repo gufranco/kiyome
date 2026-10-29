@@ -5,9 +5,9 @@ source "${BATS_TEST_DIRNAME:-.}/helpers.bash"
 
 setup() {
   WORK="$(mktemp -d "${BATS_TMPDIR:-/tmp}/disk-faults.XXXXXX")"
-  export SLOW_FACTOR=50
-  if [[ "${DISK_TEST_OS}" == "Linux" ]]; then
-    export ALLOW_INTERNAL=y
+  export KIYOME_SLOW_FACTOR=50
+  if [[ "${KIYOME_TEST_OS}" == "Linux" ]]; then
+    export KIYOME_ALLOW_INTERNAL=y
   fi
   IMAGE="${WORK}/target.img"
   disk_test_fill "${IMAGE}" 2 '\252'
@@ -28,7 +28,7 @@ wiping() {
 
 fake_identity() {
   local model="$1"
-  if [[ "${DISK_TEST_OS}" == "Darwin" ]]; then
+  if [[ "${KIYOME_TEST_OS}" == "Darwin" ]]; then
     disk_test_shim diskutil "if [ \"\$1\" = info ] && [ \"\$2\" = -plist ]; then
   \"\$REAL\" \"\$@\" | awk -v model='${model}' 'swap { sub(/<string>[^<]*<\\/string>/, \"<string>\" model \"</string>\"); swap = 0 } /<key>MediaName<\\/key>/ { swap = 1 } { print }'
   exit 0
@@ -119,7 +119,7 @@ probe_write='case "$*" in *pattern-*) true ;; *) false ;; esac'
 
 @test "kiyome stops a transfer that runs past its deadline" {
   # Arrange
-  local settings="DEADLINE_CAP_MS=2000"
+  local settings="KIYOME_DEADLINE_CAP_MS=2000"
   fake_dd "[ \"\$target\" = write ] && ${pass_write}" "sleep 5"
 
   # Act

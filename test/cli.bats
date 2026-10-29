@@ -14,7 +14,7 @@ teardown() {
 answering() {
   local answers="$1"
   shift
-  printf '%b' "${answers}" | DISK_INTERACTIVE=1 disk_test_run "$@"
+  printf '%b' "${answers}" | KIYOME_INTERACTIVE=1 disk_test_run "$@"
 }
 
 run_answering() {
@@ -42,7 +42,7 @@ minimal_path() {
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  [[ "${lines[0]}" == "kiyome - overwrite a disk with five verified patterns, reporting any bad bit line" ]]
+  [[ "${lines[0]}" == "kiyome - overwrite a disk with five verified patterns, naming any bad bit line" ]]
 }
 
 @test "kiyome version names the program and its version" {
@@ -158,7 +158,7 @@ minimal_path() {
 
 @test "kiyome lets an option on the command line win over the environment" {
   # Arrange
-  local settings="PASSES=0"
+  local settings="KIYOME_PASSES=0"
 
   # Act
   run disk_test_run_env "${settings}" kiyome --passes 1 "${WORK}/missing"

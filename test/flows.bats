@@ -5,9 +5,9 @@ source "${BATS_TEST_DIRNAME:-.}/helpers.bash"
 
 setup() {
   WORK="$(mktemp -d "${BATS_TMPDIR:-/tmp}/disk-flows.XXXXXX")"
-  export SLOW_FACTOR=50
-  if [[ "${DISK_TEST_OS}" == "Linux" ]]; then
-    export ALLOW_INTERNAL=y
+  export KIYOME_SLOW_FACTOR=50
+  if [[ "${KIYOME_TEST_OS}" == "Linux" ]]; then
+    export KIYOME_ALLOW_INTERNAL=y
   fi
   IMAGE="${WORK}/target.img"
   disk_test_fill "${IMAGE}" 2 '\252'
@@ -31,12 +31,12 @@ feeding() {
 answering() {
   local answers="$1"
   shift
-  printf '%b' "${answers}" | DISK_INTERACTIVE=1 disk_test_run "$@"
+  printf '%b' "${answers}" | KIYOME_INTERACTIVE=1 disk_test_run "$@"
 }
 
 @test "kiyome rejects a pass count that is not a positive integer" {
   # Arrange
-  local settings="PASSES=0"
+  local settings="KIYOME_PASSES=0"
 
   # Act
   run disk_test_run_env "${settings}" kiyome "${DEVICE}" </dev/null
@@ -92,7 +92,7 @@ answering() {
 @test "kiyome does not ask for passes already set" {
   # Arrange
   local answers="${NAME}\n${NAME}\n"
-  export PASSES=1
+  export KIYOME_PASSES=1
 
   # Act
   run answering "${answers}" kiyome

@@ -7,9 +7,9 @@ source "${BATS_TEST_DIRNAME:-.}/fakes.bash"
 
 setup() {
   WORK="$(mktemp -d "${BATS_TMPDIR:-/tmp}/disk-io.XXXXXX")"
-  export SLOW_FACTOR=50
-  if [[ "${DISK_TEST_OS}" == "Linux" ]]; then
-    export ALLOW_INTERNAL=y
+  export KIYOME_SLOW_FACTOR=50
+  if [[ "${KIYOME_TEST_OS}" == "Linux" ]]; then
+    export KIYOME_ALLOW_INTERNAL=y
   fi
   SHIMS="${WORK}/shims"
   export SHIMS
@@ -35,7 +35,7 @@ wiping() {
 }
 
 picking() {
-  printf '%b' "$1" | DISK_INTERACTIVE=1 PASSES=1 disk_test_run kiyome
+  printf '%b' "$1" | KIYOME_INTERACTIVE=1 KIYOME_PASSES=1 disk_test_run kiyome
 }
 
 pass_dd() {
@@ -46,7 +46,7 @@ exec \"\$REAL\" \"\$@\""
 
 @test "kiyome falls back to unmounting when the drive refuses to eject" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Darwin" ]] || skip "Linux has no separate unmount fallback"
+  [[ "${KIYOME_TEST_OS}" == "Darwin" ]] || skip "Linux has no separate unmount fallback"
   fake_flag eject-fails
   pass_dd "printf 'dd: error writing: Input/output error\\n' >&2; exit 1"
 
@@ -129,7 +129,7 @@ exit \"\$status\""
   attach 2101248
 
   # Act
-  run wiping "CHUNK_TARGET_MS=1 SLOW_FACTOR=1000"
+  run wiping "KIYOME_CHUNK_TARGET_MS=1 KIYOME_SLOW_FACTOR=1000"
 
   # Assert
   [[ "${status}" -eq 0 ]]
@@ -176,7 +176,7 @@ exec \"\$REAL\" \"\$@\""
 
 @test "kiyome bypasses the page cache when direct I/O works" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "macOS reads the raw device, which never caches"
+  [[ "${KIYOME_TEST_OS}" == "Linux" ]] || skip "macOS reads the raw device, which never caches"
   disk_test_shim dd "set -- \$(printf '%s\\n' \"\$@\" | sed '/^iflag=direct\$/d; /^oflag=direct\$/d')
 exec \"\$REAL\" \"\$@\""
 
@@ -190,8 +190,8 @@ exec \"\$REAL\" \"\$@\""
 
 @test "kiyome lists only removable disks in the picker" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "macOS reads the internal flag from diskutil"
-  unset ALLOW_INTERNAL
+  [[ "${KIYOME_TEST_OS}" == "Linux" ]] || skip "macOS reads the internal flag from diskutil"
+  unset KIYOME_ALLOW_INTERNAL
   disk_test_shim lsblk "case \"\$*\" in *RM,HOTPLUG,TRAN*${NAME}*) printf '1 0 usb\\n'; exit 0 ;; *RM,HOTPLUG,TRAN*) printf '0 0 sata\\n'; exit 0 ;; esac
 exec \"\$REAL\" \"\$@\""
 
@@ -204,8 +204,8 @@ exec \"\$REAL\" \"\$@\""
 
 @test "kiyome says when no removable disk is attached" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "an attached disk image is always removable on macOS"
-  unset ALLOW_INTERNAL
+  [[ "${KIYOME_TEST_OS}" == "Linux" ]] || skip "an attached disk image is always removable on macOS"
+  unset KIYOME_ALLOW_INTERNAL
 
   # Act
   run picking "\n"
@@ -221,7 +221,7 @@ exec \"\$REAL\" \"\$@\""
   disk_test_shim mkfs.fat "exit 1"
 
   # Act
-  run wiping "CREATE=y"
+  run wiping "KIYOME_CREATE=y"
 
   # Assert
   [[ "${status}" -eq 1 ]]
@@ -230,7 +230,7 @@ exec \"\$REAL\" \"\$@\""
 
 @test "kiyome ejects the drive once the wipe finishes on Linux" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "a disk image on macOS ejects through diskutil"
+  [[ "${KIYOME_TEST_OS}" == "Linux" ]] || skip "a disk image on macOS ejects through diskutil"
   disk_test_shim eject "exit 0"
 
   # Act
@@ -243,7 +243,7 @@ exec \"\$REAL\" \"\$@\""
 
 @test "kiyome ejects the cartridge after a fault on Linux" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "a disk image on macOS ejects through diskutil"
+  [[ "${KIYOME_TEST_OS}" == "Linux" ]] || skip "a disk image on macOS ejects through diskutil"
   disk_test_shim eject "exit 0"
   pass_dd "printf 'dd: error writing: Input/output error\\n' >&2; exit 1"
 
@@ -257,7 +257,7 @@ exec \"\$REAL\" \"\$@\""
 
 @test "kiyome waits on every transfer when the deadline cap is zero" {
   # Arrange
-  local settings="DEADLINE_CAP_MS=0"
+  local settings="KIYOME_DEADLINE_CAP_MS=0"
 
   # Act
   run wiping "${settings}"
@@ -269,7 +269,7 @@ exec \"\$REAL\" \"\$@\""
 
 @test "kiyome leaves a floppy that stays mounted for the hand to remove" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Darwin" ]] || skip "Linux ejects every drive the same way"
+  [[ "${KIYOME_TEST_OS}" == "Darwin" ]] || skip "Linux ejects every drive the same way"
   fake_identity_as "TEAC USB-FDU"
   fake_flag unmount-fails
   fake_flag mounts-after

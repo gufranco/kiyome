@@ -4,7 +4,7 @@
 . "${DISK_LIB:?}/state.sh"
 
 disk_cli_hint() {
-  printf "%s: %s. run '%s help' for usage.\n" "${DISK_PROG}" "$1" "${DISK_PROG}" >&2
+  disk_say 0 "${DISK_PROG}: $1. run '${DISK_PROG} help' for usage." >&2
 }
 
 disk_cli_version() {
@@ -124,7 +124,7 @@ disk_doctor() {
 }
 
 disk_cli_interactive() {
-  [ "${DISK_INTERACTIVE:-}" = 1 ] && return 0
+  [ "${KIYOME_INTERACTIVE:-}" = 1 ] && return 0
   [ -t 0 ]
 }
 

@@ -72,7 +72,7 @@ teardown() {
 
 @test "a failed erase is reported on macOS" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Darwin" ]] || skip "Linux partitions with its own tools"
+  [[ "${KIYOME_TEST_OS}" == "Darwin" ]] || skip "Linux partitions with its own tools"
   SHIMS="${WORK}/shims"
   disk_test_shim diskutil "[ \"\$1\" = eraseDisk ] && exit 1
 exec \"\$REAL\" \"\$@\""
@@ -87,7 +87,7 @@ exec \"\$REAL\" \"\$@\""
 
 @test "a missing partitioner is named on Linux" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "macOS partitions with diskutil"
+  [[ "${KIYOME_TEST_OS}" == "Linux" ]] || skip "macOS partitions with diskutil"
   local farm
   farm="$(disk_test_farm sfdisk)"
 
@@ -101,7 +101,7 @@ exec \"\$REAL\" \"\$@\""
 
 @test "a missing formatter is named on Linux" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "macOS formats with diskutil"
+  [[ "${KIYOME_TEST_OS}" == "Linux" ]] || skip "macOS formats with diskutil"
   local farm
   farm="$(disk_test_farm mkfs.fat)"
 
@@ -115,7 +115,7 @@ exec \"\$REAL\" \"\$@\""
 
 @test "a missing floppy formatter is named on Linux" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "macOS formats floppies with newfs_msdos"
+  [[ "${KIYOME_TEST_OS}" == "Linux" ]] || skip "macOS formats floppies with newfs_msdos"
   local farm
   farm="$(disk_test_farm mkfs.fat)"
 
@@ -129,7 +129,7 @@ exec \"\$REAL\" \"\$@\""
 
 @test "a partition table that cannot be written is reported on Linux" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "macOS partitions with diskutil"
+  [[ "${KIYOME_TEST_OS}" == "Linux" ]] || skip "macOS partitions with diskutil"
   SHIMS="${WORK}/shims"
   disk_test_shim sfdisk "exit 1"
 
@@ -143,7 +143,7 @@ exec \"\$REAL\" \"\$@\""
 
 @test "a partition that never appears is reported on Linux" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "macOS creates the partition with the filesystem"
+  [[ "${KIYOME_TEST_OS}" == "Linux" ]] || skip "macOS creates the partition with the filesystem"
   disk_test_partition_nodes_stop
   disk_test_detach "${DEVICE}"
   DEVICE="$(disk_test_attach "${IMAGE}")"
@@ -160,7 +160,7 @@ exec \"\$REAL\" \"\$@\""
 
 @test "a filesystem that cannot be made is reported on Linux" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "macOS formats with diskutil"
+  [[ "${KIYOME_TEST_OS}" == "Linux" ]] || skip "macOS formats with diskutil"
   SHIMS="${WORK}/shims"
   disk_test_shim mkfs.fat "printf 'mkfs.fat: unable to open the device\n' >&2; exit 1"
 
@@ -175,7 +175,7 @@ exec \"\$REAL\" \"\$@\""
 
 @test "a format that fails once is tried again after the device settles on Linux" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "macOS formats with diskutil"
+  [[ "${KIYOME_TEST_OS}" == "Linux" ]] || skip "macOS formats with diskutil"
   SHIMS="${WORK}/shims"
   disk_test_shim mkfs.fat "if [ -e '${WORK}/tried' ]; then exec \"\$REAL\" \"\$@\"; fi
 : >'${WORK}/tried'

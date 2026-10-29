@@ -28,7 +28,7 @@ wrapper="${wrapper_dir}/bashcov-shell"
 } >"${wrapper}"
 chmod 0755 "${wrapper}"
 
-DISK_SHELL="${wrapper}" bats "${root}/test"
+KIYOME_TEST_SHELL="${wrapper}" bats "${root}/test"
 
 cd "${root}"
 python3 scripts/coverage-gate.py '/(bin/kiyome|lib/[a-z]+\.sh)\Z' "${minimum}" coverage/.resultset.json

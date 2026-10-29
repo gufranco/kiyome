@@ -19,7 +19,7 @@
 
 </div>
 
-コマンドは1つ、テストは157件、シェルのモジュールは9個で、POSIXシステム以外に実行時の依存はありません。`kiyome`は日本語の「清め」です。姉妹ツールの[kakikomi](https://github.com/gufranco/kakikomi)はディスクイメージを書き込みます。
+コマンドは1つ、テストは166件、シェルのモジュールは9個で、POSIXシステム以外に実行時の依存はありません。`kiyome`は日本語の「清め」です。姉妹ツールの[kakikomi](https://github.com/gufranco/kakikomi)はディスクイメージを書き込みます。
 
 ---
 
@@ -36,8 +36,8 @@ Type disk6 to erase, or anything else to stop: disk6
 Unmounting /dev/disk6...
 Disk unmounted
 Measuring /dev/disk6 before wiping it, so every limit comes from this disk.
-Measured read: 222666 KiB/s sustained, 26ms to reach a sector, allowing 3x that before stopping.
-Measured write: 27028 KiB/s sustained, 27ms to reach a sector, allowing 3x that before stopping.
+Measured read: 222666 KiB/s, 26ms to reach a sector, allowing 3x that.
+Measured write: 27028 KiB/s, 27ms to reach a sector, allowing 3x that.
 Pass 1 of 1, writing per-chunk unique data 100%  438.4 MiB/s  0m00s left
 Pass 1 of 1, verifying per-chunk unique data 100%  237.9 MiB/s  0m00s left
 Pass 1 of 1, writing 0xAA 100%  888.9 MiB/s  0m00s left
@@ -113,7 +113,7 @@ openssl            ok       /usr/bin/openssl
 | `--create` | 空のディスクではなく、新しいFAT32またはexFATのファイルシステムを残します |
 | `--allow-internal` | 内蔵ディスクを許可します。動作中のシステムがあるディスクは常に拒否されます |
 
-`--passes=3`の形も使え、`--`でオプションが終わります。環境変数`PASSES=N`、`CREATE=y`、`ALLOW_INTERNAL=y`も同じ設定になり、コマンドラインのオプションが優先されます。
+`--passes=3`の形も使え、`--`でオプションが終わります。環境変数`KIYOME_PASSES=N`、`KIYOME_CREATE=y`、`KIYOME_ALLOW_INTERNAL=y`も同じ設定になり、コマンドラインのオプションが優先されます。
 
 ```bash
 kiyome /dev/disk4                 # 1パスのあと取り出し
@@ -170,7 +170,7 @@ Linux の GNU coreutils と uutils coreutils、macOS 標準のツール、その
 | コマンド | 説明 |
 |:--------|:------------|
 | `make lint` | すべてのスクリプトと補完にShellCheck、manページにmandocを実行し、関数が二重に定義されていないことを確認します |
-| `make test` | システムの`sh`で157件の`bats`テスト |
+| `make test` | システムの`sh`で166件の`bats`テスト |
 | `make test-all` | インストール済みのすべてのシェルで同じテスト |
 | `make test-linux` | Macから、特権付きUbuntuコンテナで同じテスト |
 | `make coverage` | このMacと同じコンテナでbashcovによる行カバレッジを測定して統合します。CIは100%を必須にします |

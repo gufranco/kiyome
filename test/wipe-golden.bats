@@ -5,9 +5,9 @@ source "${BATS_TEST_DIRNAME:-.}/helpers.bash"
 
 setup() {
   WORK="$(mktemp -d "${BATS_TMPDIR:-/tmp}/disk-wipe.XXXXXX")"
-  export SLOW_FACTOR=50
-  if [[ "${DISK_TEST_OS}" == "Linux" ]]; then
-    export ALLOW_INTERNAL=y
+  export KIYOME_SLOW_FACTOR=50
+  if [[ "${KIYOME_TEST_OS}" == "Linux" ]]; then
+    export KIYOME_ALLOW_INTERNAL=y
   fi
   IMAGE="${WORK}/target.img"
   disk_test_image "${IMAGE}" 4
@@ -67,7 +67,7 @@ disk_wipe_run() {
   local search_path="/usr/bin:/bin:${PATH}"
 
   # Act
-  run env PATH="${search_path}" LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 sh "${DISK_TESTS_DIR}/call.sh" call_pattern 4096 0xAA
+  run env PATH="${search_path}" LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 sh "${KIYOME_TESTS_DIR}/call.sh" call_pattern 4096 0xAA
 
   # Assert
   [[ "${status}" -eq 0 ]]

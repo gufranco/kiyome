@@ -8,8 +8,8 @@ source "${BATS_TEST_DIRNAME:-.}/fakes.bash"
 
 setup() {
   WORK="$(mktemp -d "${BATS_TMPDIR:-/tmp}/disk-timing.XXXXXX")"
-  if [[ "${DISK_TEST_OS}" == "Linux" ]]; then
-    export ALLOW_INTERNAL=y
+  if [[ "${KIYOME_TEST_OS}" == "Linux" ]]; then
+    export KIYOME_ALLOW_INTERNAL=y
   fi
   SHIMS="${WORK}/shims"
   export SHIMS
@@ -48,7 +48,7 @@ bus_error="printf 'dd: Device not configured\\n' >&2; exit 1"
   fail_dd "*of=*calibration*bs=65536*" "${io_error}"
 
   # Act
-  run wiping "SLOW_FACTOR=50"
+  run wiping "KIYOME_SLOW_FACTOR=50"
 
   # Assert
   [[ "${status}" -eq 0 ]]
@@ -63,7 +63,7 @@ bus_error="printf 'dd: Device not configured\\n' >&2; exit 1"
   fail_dd "*of=*calibration*bs=65536*" "${bus_error}"
 
   # Act
-  run wiping "SLOW_FACTOR=50"
+  run wiping "KIYOME_SLOW_FACTOR=50"
 
   # Assert
   [[ "${status}" -eq 1 ]]
@@ -77,7 +77,7 @@ bus_error="printf 'dd: Device not configured\\n' >&2; exit 1"
   fail_dd "*of=*calibration*bs=65536*" "${io_error}"
 
   # Act
-  run wiping "SLOW_FACTOR=50"
+  run wiping "KIYOME_SLOW_FACTOR=50"
 
   # Assert
   [[ "${status}" -eq 1 ]]
@@ -90,7 +90,7 @@ bus_error="printf 'dd: Device not configured\\n' >&2; exit 1"
   fail_dd "*of=*calibration*bs=4096\ skip=256\ count=1*" "${io_error}"
 
   # Act
-  run wiping "SLOW_FACTOR=50 CALIBRATION_PROBES=2"
+  run wiping "KIYOME_SLOW_FACTOR=50 KIYOME_CALIBRATION_PROBES=2"
 
   # Assert
   [[ "${output}" == *"the read probe failed at offset 1048576 of"* ]]
@@ -102,7 +102,7 @@ bus_error="printf 'dd: Device not configured\\n' >&2; exit 1"
   fail_dd "*of=*calibration*bs=4096\ skip=1\ count=*" "${io_error}"
 
   # Act
-  run wiping "SLOW_FACTOR=50 CALIBRATION_PROBES=2"
+  run wiping "KIYOME_SLOW_FACTOR=50 KIYOME_CALIBRATION_PROBES=2"
 
   # Assert
   [[ "${output}" == *"the read probe failed at offset 4096 of"* ]]
@@ -116,7 +116,7 @@ bus_error="printf 'dd: Device not configured\\n' >&2; exit 1"
   fail_dd "*of=*calibration*skip=1\ *" "\"\$REAL\" \"\$@\"; : >'${gone}'; exit 0"
 
   # Act
-  run wiping "SLOW_FACTOR=50 CALIBRATION_PROBES=1"
+  run wiping "KIYOME_SLOW_FACTOR=50 KIYOME_CALIBRATION_PROBES=1"
 
   # Assert
   [[ "${status}" -eq 1 ]]
@@ -128,7 +128,7 @@ bus_error="printf 'dd: Device not configured\\n' >&2; exit 1"
   attach 12288
 
   # Act
-  run wiping "SLOW_FACTOR=50"
+  run wiping "KIYOME_SLOW_FACTOR=50"
 
   # Assert
   [[ "${status}" -eq 0 ]]
@@ -142,7 +142,7 @@ bus_error="printf 'dd: Device not configured\\n' >&2; exit 1"
   fake_identity_as "ZIP 100"
 
   # Act
-  run wiping "SLOW_FACTOR=50"
+  run wiping "KIYOME_SLOW_FACTOR=50"
 
   # Assert
   [[ "${status}" -eq 1 ]]
@@ -155,7 +155,7 @@ bus_error="printf 'dd: Device not configured\\n' >&2; exit 1"
   disk_test_shim perl "printf '1000000\\n'"
 
   # Act
-  run wiping "SLOW_FACTOR=50"
+  run wiping "KIYOME_SLOW_FACTOR=50"
 
   # Assert
   [[ "${status}" -eq 0 ]]
@@ -170,7 +170,7 @@ bus_error="printf 'dd: Device not configured\\n' >&2; exit 1"
   disk_test_shim perl "now=\$(cat '${counter}'); printf '%s\\n' \$((now - 1000)) >'${counter}'; printf '%s\\n' \"\${now}\""
 
   # Act
-  run wiping "SLOW_FACTOR=50"
+  run wiping "KIYOME_SLOW_FACTOR=50"
 
   # Assert
   [[ "${output}" == *"the clock went backwards while timing"* ]]
@@ -185,7 +185,7 @@ bus_error="printf 'dd: Device not configured\\n' >&2; exit 1"
   disk_test_shim perl "now=\$(cat '${counter}'); printf '%s\\n' \$((now + 1000)) >'${counter}'; printf '%s\\n' \"\${now}\""
 
   # Act
-  run wiping "SLOW_FACTOR=50 PROBE_CEILING_MS=300"
+  run wiping "KIYOME_SLOW_FACTOR=50 KIYOME_PROBE_CEILING_MS=300"
 
   # Assert
   [[ "${status}" -eq 1 ]]
@@ -194,7 +194,7 @@ bus_error="printf 'dd: Device not configured\\n' >&2; exit 1"
 
 @test "a chunk past the stall limit you set stops the wipe" {
   # Arrange
-  export STALL_SECONDS=1
+  export KIYOME_STALL_SECONDS=1
 
   # Act
   run disk_test_call call_watch write write 3 9 1048576 2000
@@ -212,7 +212,7 @@ bus_error="printf 'dd: Device not configured\\n' >&2; exit 1"
   disk_test_shim perl "now=\$(cat '${counter}'); printf '%s\\n' \$((now + 3000)) >'${counter}'; printf '%s\\n' \"\${now}\""
 
   # Act
-  run wiping "STALL_SECONDS=1"
+  run wiping "KIYOME_STALL_SECONDS=1"
 
   # Assert
   [[ "${status}" -eq 1 ]]

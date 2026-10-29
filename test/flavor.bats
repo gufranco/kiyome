@@ -23,11 +23,11 @@ fake_tool() {
 flavor_of() {
   local tool
   tool="$(fake_tool "${WORK}/bin/$1" "$2")"
-  DISK_OS="${3:-Darwin}" disk_test_call disk_tool_flavor "${tool}"
+  KIYOME_OS="${3:-Darwin}" disk_test_call disk_tool_flavor "${tool}"
 }
 
 flavor_at() {
-  DISK_OS=Darwin disk_test_call disk_tool_flavor "$1"
+  KIYOME_OS=Darwin disk_test_call disk_tool_flavor "$1"
 }
 
 @test "GNU coreutils reads as gnu with its version" {

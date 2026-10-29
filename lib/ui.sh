@@ -90,7 +90,7 @@ disk_eligible() {
   disk_el_all="$(disk_candidates)"
   for disk_el_disk in ${disk_el_all}; do
     disk_listed "${disk_el_disk}" "${disk_el_boot}" && continue
-    if [ "${ALLOW_INTERNAL:-}" != "y" ] && disk_is_internal "${disk_el_disk}"; then
+    if [ "${KIYOME_ALLOW_INTERNAL:-}" != "y" ] && disk_is_internal "${disk_el_disk}"; then
       continue
     fi
     printf '%s\n' "${disk_el_disk}"
@@ -145,7 +145,7 @@ disk_refuse_target() {
     disk_error "stopped: $1 holds the running system, so it is never wiped."
     return 1
   fi
-  if [ "${ALLOW_INTERNAL:-}" != "y" ] && disk_is_internal "$1"; then
+  if [ "${KIYOME_ALLOW_INTERNAL:-}" != "y" ] && disk_is_internal "$1"; then
     disk_error "stopped: $1 is an internal disk. use --allow-internal to wipe it on purpose."
     return 1
   fi

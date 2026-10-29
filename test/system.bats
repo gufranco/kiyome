@@ -8,9 +8,9 @@ source "${BATS_TEST_DIRNAME:-.}/fakes.bash"
 
 setup() {
   WORK="$(mktemp -d "${BATS_TMPDIR:-/tmp}/disk-system.XXXXXX")"
-  export SLOW_FACTOR=50
-  if [[ "${DISK_TEST_OS}" == "Linux" ]]; then
-    export ALLOW_INTERNAL=y
+  export KIYOME_SLOW_FACTOR=50
+  if [[ "${KIYOME_TEST_OS}" == "Linux" ]]; then
+    export KIYOME_ALLOW_INTERNAL=y
   fi
   SHIMS="${WORK}/shims"
   export SHIMS
@@ -21,7 +21,7 @@ setup() {
 teardown() {
   disk_test_partition_nodes_stop
   if [[ -n "${MOUNTED}" ]]; then
-    case "${DISK_TEST_OS}" in
+    case "${KIYOME_TEST_OS}" in
     Darwin) hdiutil detach -force "${MOUNTED}" >/dev/null 2>&1 || true ;;
     *) sudo umount "${MOUNTED}" >/dev/null 2>&1 || true ;;
     esac
@@ -44,7 +44,7 @@ declining() {
 }
 
 on_terminal() {
-  case "${DISK_TEST_OS}" in
+  case "${KIYOME_TEST_OS}" in
   Darwin) script -q /dev/null "$@" </dev/null ;;
   *) script -qec "$(printf '%q ' "$@")" /dev/null </dev/null ;;
   esac
@@ -159,7 +159,7 @@ exec \"\$@\""
 
 @test "the clock falls back to whole seconds when date has no nanoseconds" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Darwin" ]] || skip "Linux reads /proc/uptime before date"
+  [[ "${KIYOME_TEST_OS}" == "Darwin" ]] || skip "Linux reads /proc/uptime before date"
   disk_test_shim perl "exit 1"
   disk_test_shim date "case \"\$1\" in +%s%N) printf '%sN\\n' \"\$(\"\$REAL\" +%s)\"; exit 0 ;; esac
 exec \"\$REAL\" \"\$@\""
@@ -210,7 +210,7 @@ exec \"\$REAL\" \"\$@\""
 @test "kiyome resolves a mount point to its whole disk" {
   # Arrange
   disk_test_fat_image "${WORK}/fat.img" 8 KIYOMETEST
-  case "${DISK_TEST_OS}" in
+  case "${KIYOME_TEST_OS}" in
   Darwin)
     local listing
     listing="$(hdiutil attach "${WORK}/fat.img")"
@@ -239,7 +239,7 @@ exec \"\$REAL\" \"\$@\""
 
 @test "kiyome unmounts each volume when the whole disk will not unmount on macOS" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Darwin" ]] || skip "Linux unmounts each partition already"
+  [[ "${KIYOME_TEST_OS}" == "Darwin" ]] || skip "Linux unmounts each partition already"
   disk_test_fat_image "${WORK}/fat.img" 8 KIYOMESLICE
   local listing
   listing="$(hdiutil attach "${WORK}/fat.img")"
@@ -258,7 +258,7 @@ exec \"\$REAL\" \"\$@\""
 
 @test "kiyome unmounts a mounted partition before it wipes on Linux" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "macOS unmounts the whole disk through diskutil"
+  [[ "${KIYOME_TEST_OS}" == "Linux" ]] || skip "macOS unmounts the whole disk through diskutil"
   disk_test_fat_image "${WORK}/fat.img" 8 KIYOMEPART
   DEVICE="$(disk_test_attach_partitioned "${WORK}/fat.img")"
   disk_test_partition_nodes_start
@@ -277,7 +277,7 @@ exec \"\$REAL\" \"\$@\""
 
 @test "kiyome unmounts a filesystem on the whole disk before it wipes on Linux" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "macOS unmounts the whole disk through diskutil"
+  [[ "${KIYOME_TEST_OS}" == "Linux" ]] || skip "macOS unmounts the whole disk through diskutil"
   disk_test_image "${WORK}/whole.img" 8
   mkfs.fat -F 16 -s 1 -n KIYOMEWHOLE "${WORK}/whole.img" >/dev/null
   DEVICE="$(disk_test_attach "${WORK}/whole.img")"
@@ -312,7 +312,7 @@ exec \"\$REAL\" \"\$@\""
   DEVICE="$(disk_test_attach_partitioned "${WORK}/fat.img")"
   disk_test_partition_nodes_start
   local partition
-  case "${DISK_TEST_OS}" in
+  case "${KIYOME_TEST_OS}" in
   Darwin) partition="${DEVICE}s1" ;;
   *) partition="${DEVICE}p1" ;;
   esac
@@ -328,7 +328,7 @@ exec \"\$REAL\" \"\$@\""
 
 @test "kiyome refuses a mounted filesystem that is not a block device" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "macOS reports a device node for every mounted volume"
+  [[ "${KIYOME_TEST_OS}" == "Linux" ]] || skip "macOS reports a device node for every mounted volume"
 
   # Act
   run disk_test_run kiyome /dev/shm </dev/null
@@ -371,7 +371,7 @@ exec \"\$REAL\" \"\$@\""
   local bin="${REPO_DIR}/bin"
   local -a shell_words
   local version
-  read -r -a shell_words <<<"${DISK_SHELL:-sh}"
+  read -r -a shell_words <<<"${KIYOME_TEST_SHELL:-sh}"
   version="$(sed -n 's/^KIYOME_VERSION="\(.*\)"$/\1/p' "${REPO_DIR}/lib/core.sh")"
 
   # Act
@@ -416,12 +416,12 @@ exec \"\$REAL\" \"\$@\""
 @test "progress redraws one line on a terminal" {
   # Arrange
   local -a shell_words
-  read -r -a shell_words <<<"${DISK_SHELL:-sh}"
+  read -r -a shell_words <<<"${KIYOME_TEST_SHELL:-sh}"
   local search_path
   search_path="$(disk_test_path)"
 
   # Act
-  run on_terminal env PATH="${search_path}" "${shell_words[@]}" "${DISK_TESTS_DIR}/call.sh" disk_progress "Pass 1 of 1, writing 0xAA" 1048576 1048576 0
+  run on_terminal env PATH="${search_path}" "${shell_words[@]}" "${KIYOME_TESTS_DIR}/call.sh" disk_progress "Pass 1 of 1, writing 0xAA" 1048576 1048576 0
 
   # Assert
   [[ "${output}" == *"Pass 1 of 1, writing 0xAA 100%"* ]]

@@ -70,7 +70,7 @@ disk_exact_reference() {
 }
 
 disk_chunk_settle() {
-  disk_cs_attempts="${CHUNK_RETRIES:-${DISK_RETRIES}}"
+  disk_cs_attempts="${KIYOME_CHUNK_RETRIES:-${DISK_RETRIES}}"
   [ "${disk_cs_attempts}" -ge 1 ] || disk_cs_attempts=1
   DISK_ATTEMPT=1
   DISK_OUTCOME=1

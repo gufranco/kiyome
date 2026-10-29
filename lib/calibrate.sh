@@ -11,8 +11,8 @@ disk_tune() {
   DISK_FACTOR_MAX=1200
   DISK_SLACK=2
   DISK_CHUNK_TARGET=3000
-  DISK_DEADLINE_CAP="${DEADLINE_CAP_MS:-120000}"
-  DISK_PROBE_CEILING="${PROBE_CEILING_MS:-15000}"
+  DISK_DEADLINE_CAP="${KIYOME_DEADLINE_CAP_MS:-120000}"
+  DISK_PROBE_CEILING="${KIYOME_PROBE_CEILING_MS:-15000}"
   if disk_fragile; then
     DISK_PROBES=2
     DISK_REPEATS=1
@@ -26,8 +26,8 @@ disk_tune() {
     DISK_FACTOR_MAX=250
     DISK_SLACK=1
     DISK_CHUNK_TARGET=1000
-    DISK_PROBE_CEILING="${PROBE_CEILING_MS:-4000}"
-    DISK_DEADLINE_CAP="${DEADLINE_CAP_MS:-${DISK_PROBE_CEILING}}"
+    DISK_PROBE_CEILING="${KIYOME_PROBE_CEILING_MS:-4000}"
+    DISK_DEADLINE_CAP="${KIYOME_DEADLINE_CAP_MS:-${DISK_PROBE_CEILING}}"
     disk_info "A ${DISK_FAMILY} head that mistracks destroys the cartridge and then the next drive it meets."
     disk_info "Every transfer is therefore cut off at its own deadline rather than waited on, and one stall ends the run."
   fi
@@ -134,7 +134,7 @@ disk_quietest_move() {
 }
 
 disk_probe_bytes() {
-  disk_pb_floor="${CALIBRATION_FLOOR_MS:-50}"
+  disk_pb_floor="${KIYOME_CALIBRATION_FLOOR_MS:-50}"
   disk_pb_candidate=65536
   [ "${disk_pb_candidate}" -lt $(($3 * 2)) ] && disk_pb_candidate=$(($3 * 2))
   [ "${disk_pb_candidate}" -gt "$4" ] && disk_pb_candidate="$4"
@@ -168,7 +168,7 @@ disk_calibrate() {
   disk_cb_direction="$1"
   disk_cb_disk="$2"
   disk_cb_size="$3"
-  disk_cb_probes="${CALIBRATION_PROBES:-${DISK_PROBES}}"
+  disk_cb_probes="${KIYOME_CALIBRATION_PROBES:-${DISK_PROBES}}"
   disk_cb_io="$(disk_io_device "${disk_cb_disk}")"
   disk_cb_unit="${DISK_SECTOR}"
   disk_cb_overheads="${DISK_TMPDIR}/cal-overhead"
@@ -247,7 +247,7 @@ disk_calibrate() {
   disk_cb_spread=$((disk_cb_spread * disk_cb_spread / 100))
   [ "${disk_cb_spread}" -lt "${DISK_FACTOR_MIN}" ] && disk_cb_spread="${DISK_FACTOR_MIN}"
   [ "${disk_cb_spread}" -gt "${DISK_FACTOR_MAX}" ] && disk_cb_spread="${DISK_FACTOR_MAX}"
-  [ -n "${SLOW_FACTOR:-}" ] && disk_cb_spread=$((SLOW_FACTOR * 100))
+  [ -n "${KIYOME_SLOW_FACTOR:-}" ] && disk_cb_spread=$((KIYOME_SLOW_FACTOR * 100))
 
   if [ "${disk_cb_direction}" = "write" ]; then
     DISK_OVERHEAD_WRITE="${disk_cb_overhead}"
@@ -260,7 +260,7 @@ disk_calibrate() {
   fi
 
   disk_cb_shown="$(disk_duration "${disk_cb_overhead}")"
-  disk_info "Measured ${disk_cb_direction}: $((disk_cb_rate / 1024)) KiB/s sustained, ${disk_cb_shown} to reach a sector, allowing $((disk_cb_spread / 100))x that before stopping."
+  disk_info "Measured ${disk_cb_direction}: $((disk_cb_rate / 1024)) KiB/s, ${disk_cb_shown} to reach a sector, allowing $((disk_cb_spread / 100))x that."
   return 0
 }
 
@@ -310,7 +310,7 @@ disk_measure() {
 }
 
 disk_chunk_bytes() {
-  disk_ck_target="${CHUNK_TARGET_MS:-${DISK_CHUNK_TARGET}}"
+  disk_ck_target="${KIYOME_CHUNK_TARGET_MS:-${DISK_CHUNK_TARGET}}"
   disk_ck_unit="${DISK_SECTOR}"
   [ "${disk_ck_unit}" -lt 4096 ] && disk_ck_unit=4096
   disk_ck_candidate="${disk_ck_unit}"
@@ -372,7 +372,7 @@ disk_watch() {
   disk_wt_where="chunk $3 of $4"
   disk_wt_bytes="$5"
   disk_wt_elapsed="$6"
-  disk_wt_ceiling=$((${STALL_SECONDS:-0} * 1000))
+  disk_wt_ceiling=$((${KIYOME_STALL_SECONDS:-0} * 1000))
   DISK_REASON=""
   disk_is_uint "${disk_wt_elapsed}" || disk_wt_elapsed=0
   disk_wt_took="$(disk_duration "${disk_wt_elapsed}")"

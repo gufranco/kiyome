@@ -19,7 +19,7 @@ English | [日本語](README.ja.md) | [简体中文](README.zh-Hans.md) | [繁�
 
 </div>
 
-One command, 157 tests, 9 shell modules, and no runtime dependency beyond a POSIX system. `kiyome` is 清め, Japanese for purification. Its companion [kakikomi](https://github.com/gufranco/kakikomi) writes disk images.
+One command, 166 tests, 9 shell modules, and no runtime dependency beyond a POSIX system. `kiyome` is 清め, Japanese for purification. Its companion [kakikomi](https://github.com/gufranco/kakikomi) writes disk images.
 
 ---
 
@@ -36,8 +36,8 @@ Type disk6 to erase, or anything else to stop: disk6
 Unmounting /dev/disk6...
 Disk unmounted
 Measuring /dev/disk6 before wiping it, so every limit comes from this disk.
-Measured read: 222666 KiB/s sustained, 26ms to reach a sector, allowing 3x that before stopping.
-Measured write: 27028 KiB/s sustained, 27ms to reach a sector, allowing 3x that before stopping.
+Measured read: 222666 KiB/s, 26ms to reach a sector, allowing 3x that.
+Measured write: 27028 KiB/s, 27ms to reach a sector, allowing 3x that.
 Pass 1 of 1, writing per-chunk unique data 100%  438.4 MiB/s  0m00s left
 Pass 1 of 1, verifying per-chunk unique data 100%  237.9 MiB/s  0m00s left
 Pass 1 of 1, writing 0xAA 100%  888.9 MiB/s  0m00s left
@@ -113,7 +113,7 @@ openssl            ok       /usr/bin/openssl
 | `--create` | Leave a fresh FAT32 or exFAT filesystem behind instead of a blank disk |
 | `--allow-internal` | Allow an internal disk. The disk holding the running system is always refused |
 
-`--passes=3` works too, and `--` ends the options. The environment variables `PASSES=N`, `CREATE=y` and `ALLOW_INTERNAL=y` set the same options; an option on the command line wins.
+`--passes=3` works too, and `--` ends the options. The environment variables `KIYOME_PASSES=N`, `KIYOME_CREATE=y` and `KIYOME_ALLOW_INTERNAL=y` set the same options; an option on the command line wins.
 
 ```bash
 kiyome /dev/disk4                 # one pass, then eject
@@ -170,7 +170,7 @@ Every run works on the five toolsets in common use: Linux with GNU or uutils cor
 | Command | Description |
 |:--------|:------------|
 | `make lint` | ShellCheck on every script and completion, mandoc on the man page, and a check that no function is defined twice |
-| `make test` | The 157 `bats` tests under the system `sh` |
+| `make test` | The 166 `bats` tests under the system `sh` |
 | `make test-all` | The same tests under every installed shell |
 | `make test-linux` | The same tests in a privileged Ubuntu container, from a Mac |
 | `make coverage` | bashcov line coverage on this Mac and in that container, merged, with a 100% gate CI enforces |

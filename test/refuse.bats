@@ -29,9 +29,9 @@ teardown() {
   [[ "${output}" == "kiyome: stopped: ${boot} holds the running system, so it is never wiped." ]]
 }
 
-@test "kiyome refuses an internal disk without ALLOW_INTERNAL" {
+@test "kiyome refuses an internal disk without KIYOME_ALLOW_INTERNAL" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "macOS reports attached disk images as external"
+  [[ "${KIYOME_TEST_OS}" == "Linux" ]] || skip "macOS reports attached disk images as external"
   local before after
   before="$(disk_test_range_bytes "${IMAGE}" 0 4194304)"
 

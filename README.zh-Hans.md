@@ -19,7 +19,7 @@
 
 </div>
 
-一个命令，157 个测试，9 个 shell 模块，除 POSIX 系统外没有任何运行时依赖。`kiyome` 是日语"清め"，意为净化。它的姊妹工具 [kakikomi](https://github.com/gufranco/kakikomi) 用来写入磁盘镜像。
+一个命令，166 个测试，9 个 shell 模块，除 POSIX 系统外没有任何运行时依赖。`kiyome` 是日语"清め"，意为净化。它的姊妹工具 [kakikomi](https://github.com/gufranco/kakikomi) 用来写入磁盘镜像。
 
 ---
 
@@ -36,8 +36,8 @@ Type disk6 to erase, or anything else to stop: disk6
 Unmounting /dev/disk6...
 Disk unmounted
 Measuring /dev/disk6 before wiping it, so every limit comes from this disk.
-Measured read: 222666 KiB/s sustained, 26ms to reach a sector, allowing 3x that before stopping.
-Measured write: 27028 KiB/s sustained, 27ms to reach a sector, allowing 3x that before stopping.
+Measured read: 222666 KiB/s, 26ms to reach a sector, allowing 3x that.
+Measured write: 27028 KiB/s, 27ms to reach a sector, allowing 3x that.
 Pass 1 of 1, writing per-chunk unique data 100%  438.4 MiB/s  0m00s left
 Pass 1 of 1, verifying per-chunk unique data 100%  237.9 MiB/s  0m00s left
 Pass 1 of 1, writing 0xAA 100%  888.9 MiB/s  0m00s left
@@ -113,7 +113,7 @@ openssl            ok       /usr/bin/openssl
 | `--create` | 最后留下一个全新的 FAT32 或 exFAT 文件系统，而不是空白磁盘 |
 | `--allow-internal` | 允许内置磁盘。运行中系统所在的磁盘始终被拒绝 |
 
-也可以写成 `--passes=3`，`--` 表示选项结束。环境变量 `PASSES=N`、`CREATE=y` 和 `ALLOW_INTERNAL=y` 设置的是同样的选项，命令行上的选项优先。
+也可以写成 `--passes=3`，`--` 表示选项结束。环境变量 `KIYOME_PASSES=N`、`KIYOME_CREATE=y` 和 `KIYOME_ALLOW_INTERNAL=y` 设置的是同样的选项，命令行上的选项优先。
 
 ```bash
 kiyome /dev/disk4                 # 一遍，然后弹出
@@ -170,7 +170,7 @@ kiyome 先测量磁盘自身的速度，再据此给每次传输设定期限。�
 | 命令 | 说明 |
 |:--------|:------------|
 | `make lint` | 对每个脚本和补全运行 ShellCheck，用 mandoc 检查 man 手册，并检查没有函数被重复定义 |
-| `make test` | 在系统 `sh` 下运行 157 个 `bats` 测试 |
+| `make test` | 在系统 `sh` 下运行 166 个 `bats` 测试 |
 | `make test-all` | 在每个已安装的 shell 下运行同样的测试 |
 | `make test-linux` | 从 Mac 在特权 Ubuntu 容器中运行同样的测试 |
 | `make coverage` | 在这台 Mac 和同一容器中用 bashcov 测量行覆盖率并合并，CI 要求 100% |

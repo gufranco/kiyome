@@ -21,7 +21,7 @@ lint:
 	mandoc -T lint man/kiyome.1
 
 test:
-	DISK_SHELLS=sh sh test/run-matrix.sh test
+	KIYOME_TEST_SHELLS=sh sh test/run-matrix.sh test
 
 test-all:
 	sh test/run-matrix.sh test
