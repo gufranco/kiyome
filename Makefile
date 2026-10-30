@@ -1,6 +1,6 @@
 SHELL := /bin/sh
 PREFIX ?= $(HOME)/.local
-SCRIPTS := bin/kiyome lib/*.sh scripts/*.sh test/*.sh test/*.bash test/*.bats test/shim/sudo
+SCRIPTS := bin/kiyome lib/*.sh scripts/*.sh .github/scripts/*.sh test/*.sh test/*.bash test/*.bats test/shim/sudo
 
 .PHONY: help fmt lint test test-all test-linux coverage check install
 
@@ -20,7 +20,7 @@ fmt:
 
 lint:
 	shfmt -i 2 -d $(SCRIPTS)
-	shellcheck -x -s sh -o all bin/kiyome lib/*.sh scripts/*.sh
+	shellcheck -x -s sh -o all bin/kiyome lib/*.sh scripts/*.sh .github/scripts/*.sh
 	sh scripts/check-names.sh
 	shellcheck -x -o all test/*.sh test/*.bash test/*.bats test/shim/sudo
 	shellcheck -s bash -o all completions/kiyome.bash

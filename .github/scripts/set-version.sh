@@ -2,7 +2,7 @@
 set -eu
 
 version=${1:?version required}
-root=$(cd "$(dirname "$0")/.." && pwd)
+root=$(cd "$(dirname "$0")/../.." && pwd)
 core="${root}/lib/core.sh"
 
 if ! grep -q '^KIYOME_VERSION=' "${core}"; then
