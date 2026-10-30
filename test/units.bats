@@ -322,3 +322,42 @@ source "${BATS_TEST_DIRNAME:-.}/helpers.bash"
   # Assert
   [[ "${status}" -eq 0 ]]
 }
+
+@test "the bytes dd moved come from its bytes line" {
+  # Arrange
+  local report="${BATS_TEST_TMPDIR:?}/dd.err"
+  printf '2+0 records in\n2+0 records out\n1024 bytes transferred in 0.001 secs\n' >"${report}"
+
+  # Act
+  run disk_test_call disk_dd_bytes "${report}" 512
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == "1024" ]]
+}
+
+@test "the bytes dd moved come from whole records when it prints no bytes line" {
+  # Arrange
+  local report="${BATS_TEST_TMPDIR:?}/dd.err"
+  printf '3+0 records in\n3+0 records out\n' >"${report}"
+
+  # Act
+  run disk_test_call disk_dd_bytes "${report}" 65536
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == "196608" ]]
+}
+
+@test "a partial record counts as nothing when dd prints no bytes line" {
+  # Arrange
+  local report="${BATS_TEST_TMPDIR:?}/dd.err"
+  printf '1+1 records in\n1+1 records out\n' >"${report}"
+
+  # Act
+  run disk_test_call disk_dd_bytes "${report}" 512
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == "512" ]]
+}

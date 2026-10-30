@@ -145,7 +145,11 @@ disk_block_bytes() {
 }
 
 disk_dd_bytes() {
-  awk '/bytes/ { print $1; exit }' "$1"
+  awk -v block="$2" '
+    /bytes/ { print $1; found = 1; exit }
+    /records out/ { split($1, records, "+"); whole = records[1] * block }
+    END { if (!found && whole != "") print whole }
+  ' "$1"
 }
 
 disk_dd_error() {
@@ -198,7 +202,7 @@ disk_move() {
     ;;
   esac
 
-  DISK_MOVED="$(disk_dd_bytes "${disk_mv_err}")"
+  DISK_MOVED="$(disk_dd_bytes "${disk_mv_err}" "${disk_mv_block}")"
   disk_is_uint "${DISK_MOVED}" || DISK_MOVED=0
   if [ "${DISK_MOVED}" -ne "${disk_mv_bytes}" ]; then
     disk_set_error "dd moved ${DISK_MOVED} of ${disk_mv_bytes} bytes at offset ${disk_mv_offset} with bs=${disk_mv_block}"

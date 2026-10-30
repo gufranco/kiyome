@@ -285,3 +285,32 @@ exec \"\$REAL\" \"\$@\""
   [[ "${status}" -eq 0 ]]
   [[ "${output}" == *"${DEVICE} is still mounted. remove the disk by hand once it is idle."* ]]
 }
+
+@test "kiyome wipes through a dd that reports only record counts" {
+  # Arrange
+  disk_test_shim dd "err=\"\$(mktemp)\"
+\"\$REAL\" \"\$@\" 2>\"\$err\"
+status=\$?
+grep -v bytes \"\$err\" >&2
+rm -f \"\$err\"
+exit \"\$status\""
+
+  # Act
+  run wiping
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"Wiped ${DEVICE}: every byte of every pattern read back as written."* ]]
+}
+
+@test "kiyome does not trust a dd whose only record count came up short" {
+  # Arrange
+  pass_dd "\"\$REAL\" \"\$@\" 2>/dev/null; printf '0+1 records in\\n0+1 records out\\n' >&2; exit 0"
+
+  # Act
+  run wiping
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == *"moved 0 of"* ]]
+}
