@@ -154,6 +154,17 @@ disk_bounded() {
   wait "${disk_b_pid}"
 }
 
+disk_overran() {
+  if ! disk_is_uint "$2" || [ "$2" -eq 0 ]; then
+    return 1
+  fi
+  disk_ov_now="$(disk_now_ms)"
+  if ! disk_is_uint "$1" || ! disk_is_uint "${disk_ov_now}"; then
+    return 1
+  fi
+  [ $((disk_ov_now - $1)) -ge "$2" ]
+}
+
 disk_bounded_ms() {
   disk_bm_ms="$1"
   shift

@@ -131,6 +131,37 @@ probe_write='case "$*" in *pattern-*) true ;; *) false ;; esac'
   [[ "${output}" == *"the drive stopped answering mid-transfer"* ]]
 }
 
+@test "kiyome stops a transfer past its deadline when timeout reports a terminate" {
+  # Arrange
+  local settings="KIYOME_DEADLINE_CAP_MS=2000"
+  disk_test_shim timeout "while [ \"\$#\" -gt 0 ]; do
+  case \"\$1\" in
+    -k | -s) shift 2 ;;
+    -*) shift ;;
+    *) break ;;
+  esac
+done
+limit=\"\$1\"
+shift
+\"\$@\" &
+child=\"\$!\"
+( sleep \"\${limit}\"; kill -TERM \"\${child}\" ) >/dev/null 2>&1 &
+watcher=\"\$!\"
+status=0
+wait \"\${child}\" || status=\"\$?\"
+kill \"\${watcher}\" 2>/dev/null
+exit \"\${status}\""
+  fake_dd "[ \"\$target\" = write ] && ${pass_write}" "sleep 5"
+
+  # Act
+  run wiping "${settings}"
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == *"went silent for"* ]]
+  [[ "${output}" == *"the drive stopped answering mid-transfer"* ]]
+}
+
 @test "kiyome stops when the disk fails while it is being measured" {
   # Arrange
   fake_dd "[ \"\$target\" = write ] && ${probe_write}" "printf 'dd: error writing: Input/output error\n' >&2; exit 1"

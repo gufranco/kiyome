@@ -22,6 +22,15 @@ disk_wipe_phase_label() {
   fi
 }
 
+disk_halt_outcome() {
+  if [ "${DISK_INTERRUPTED:-0}" -eq 1 ]; then
+    disk_overran "$1" "${DISK_DEADLINE:-0}" && return 3
+    return 4
+  fi
+  [ "${DISK_TIMED_OUT:-0}" -eq 1 ] && return 3
+  return 0
+}
+
 disk_wipe_attempt() {
   disk_wa_started="$(disk_now_ms)"
   disk_wa_moved=1
@@ -31,8 +40,7 @@ disk_wipe_attempt() {
     disk_move read "$3" "${DISK_TMPDIR}/readback" "$4" "$5" || disk_wa_moved=0
   fi
   if [ "${disk_wa_moved}" -eq 0 ]; then
-    [ "${DISK_INTERRUPTED:-0}" -eq 1 ] && return 4
-    [ "${DISK_TIMED_OUT:-0}" -eq 1 ] && return 3
+    disk_halt_outcome "${disk_wa_started}" || return "$?"
     disk_wa_detail="$(disk_get_error)"
     disk_wa_class="$(disk_error_class "${disk_wa_detail}")"
     [ "${disk_wa_class}" = "bus" ] && return 2

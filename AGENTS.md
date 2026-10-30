@@ -31,6 +31,7 @@ Guidance for anyone, human or agent, changing kiyome. What kiyome is and how to 
 - kakikomi is the closest sibling. Both keep the same `disk_` function names in [`lib/`](lib), and a fix to a shared helper, such as the option parser in [`lib/cli.sh`](lib/cli.sh) or the drive fault handling in [`lib/io.sh`](lib/io.sh), lands in both repositories.
 - Tests wipe real file-backed disks attached with `hdiutil` or `losetup`; the container runs privileged to reach loop devices.
 - The bytes a `dd` moved come from its bytes line. BusyBox's `dd` prints only its record counts, so there the count is the whole records out times the block size, and a partial record leaves the move short.
+- A transfer past its deadline exits 124 from GNU and uutils `timeout`, and 143 from BusyBox's, which also means a terminate signal. A 143 counts as a deadline only when the transfer ran at least its limit.
 
 ## Release
 

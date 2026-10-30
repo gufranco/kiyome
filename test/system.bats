@@ -148,6 +148,50 @@ exec \"\$@\""
   [[ "${status}" -eq 0 ]]
 }
 
+@test "a transfer that ran for its whole deadline overran it" {
+  # Arrange
+  disk_test_shim perl "printf '5000\\n'"
+
+  # Act
+  run disk_test_call disk_overran 1000 4000
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+}
+
+@test "a transfer stopped before its deadline did not overrun it" {
+  # Arrange
+  disk_test_shim perl "printf '5000\\n'"
+
+  # Act
+  run disk_test_call disk_overran 1000 4001
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+}
+
+@test "a transfer without a deadline never overruns" {
+  # Arrange
+  disk_test_shim perl "printf '5000\\n'"
+
+  # Act
+  run disk_test_call disk_overran 1000 0
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+}
+
+@test "a transfer with an unknown start is not taken as overrun" {
+  # Arrange
+  local started=""
+
+  # Act
+  run disk_test_call disk_overran "${started}" 1000
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+}
+
 @test "the clock still reads without perl" {
   # Arrange
   disk_test_shim perl "exit 1"
