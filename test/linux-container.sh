@@ -7,7 +7,7 @@ image="${KIYOME_TEST_IMAGE:-ubuntu:26.04}"
 docker run --rm --privileged \
   -v "${repo}:/repo" \
   -w /repo \
-  -e KIYOME_TEST_SHELL="${KIYOME_TEST_SHELL:-}" \
+  -e KIYOME_TEST_SHELLS="${KIYOME_TEST_SHELLS:-}" \
   -e KIYOME_TEST_RECORD="${KIYOME_TEST_RECORD:-}" \
   "${image}" \
   sh -c '

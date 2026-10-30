@@ -72,24 +72,32 @@ disk_test_call() {
   PATH="${search_path}" "${shell_words[@]}" "${KIYOME_TESTS_DIR}/call.sh" "$@"
 }
 
+disk_test_farm_wanted() {
+  local farm="$1"
+  local tool="$2"
+  local name="${2##*/}"
+  local excluded
+  shift 2
+  [[ -x "${tool}" && ! -e "${farm}/${name}" ]] || return 1
+  for excluded in "$@"; do
+    [[ "${name}" == "${excluded}" ]] && return 1
+  done
+  return 0
+}
+
 disk_test_farm() {
   local farm="${WORK:?}/farm"
-  local dir tool name excluded
+  local dir tool search_path
+  local -a dirs batch
   mkdir -p "${farm}"
-  local -a dirs
-  local search_path
   search_path="$(disk_test_path)"
   IFS=: read -r -a dirs <<<"${search_path}"
   for dir in "${dirs[@]}"; do
-    [[ -d "${dir}" ]] || continue
+    batch=()
     for tool in "${dir}"/*; do
-      name="${tool##*/}"
-      [[ -x "${tool}" && ! -e "${farm}/${name}" ]] || continue
-      for excluded in "$@"; do
-        [[ "${name}" == "${excluded}" ]] && continue 2
-      done
-      ln -s "${tool}" "${farm}/${name}"
+      disk_test_farm_wanted "${farm}" "${tool}" "$@" && batch+=("${tool}")
     done
+    [[ ${#batch[@]} -eq 0 ]] || ln -s "${batch[@]}" "${farm}/"
   done
   printf '%s\n' "${farm}"
 }
@@ -161,10 +169,13 @@ disk_test_partition_nodes_start() {
         [[ -e "${part}/dev" ]] || continue
         node="/dev/${part##*/}"
         IFS=: read -r major minor <"${part}/dev"
-        current="$(stat -c '%Hr:%Lr' "${node}" 2>/dev/null || true)"
-        [[ "${current}" == "${major}:${minor}" ]] && continue
-        sudo rm -f "${node}"
-        sudo mknod -m 660 "${node}" b "${major}" "${minor}" 2>/dev/null || true
+        current="$(stat -c '%t:%T' "${node}" 2>/dev/null || true)"
+        wanted="$(printf '%x:%x' "${major}" "${minor}")"
+        [[ "${current}" == "${wanted}" ]] && continue
+        sudo rm -f "${node}.new"
+        if sudo mknod -m 660 "${node}.new" b "${major}" "${minor}" 2>/dev/null; then
+          sudo mv -f "${node}.new" "${node}" || true
+        fi
       done
       sleep 0.2
       tries=$((tries + 1))
