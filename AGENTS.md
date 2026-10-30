@@ -19,12 +19,13 @@ Guidance for anyone, human or agent, changing kiyome. What kiyome is and how to 
 ## Names
 
 - Globals carry `DISK_`; function-scoped variables carry a per-function `disk_` prefix. kakikomi uses the same names, see Domain rules.
-- Settings come from `KIYOME_<NAME>`, such as `KIYOME_PASSES`; test switches are `KIYOME_TERMINAL`, `KIYOME_TEST_SHELLS` and `KIYOME_TEST_RECORD`.
+- Settings come from `KIYOME_<NAME>`, such as `KIYOME_PASSES` or `KIYOME_JSON`; test switches are `KIYOME_TERMINAL`, `KIYOME_TEST_SHELLS` and `KIYOME_TEST_RECORD`.
 - Output goes through `disk_info`, `disk_say`, `disk_error` and `disk_warning`.
 
 ## Behaviour
 
 - kiyome has one job, so a bare `kiyome` on a terminal asks for the disk and the number of passes directly.
+- `--json` reports the disk, its size in bytes, the number of passes, whether every pattern read back as written, and whether `--create` left a filesystem behind.
 
 ## Domain rules
 
@@ -39,6 +40,4 @@ Guidance for anyone, human or agent, changing kiyome. What kiyome is and how to 
 
 ## Gaps against FAMILY.md
 
-As of 2026-10-29, closed in the change that removes each line:
-
-- No `--json` for a wipe's result.
+None (as of 2026-10-30).

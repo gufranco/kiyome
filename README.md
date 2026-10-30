@@ -111,8 +111,9 @@ openssl            ok       /usr/bin/openssl
 | `--passes N` | Repeat the five patterns N times. 1 by default |
 | `--create` | Leave a fresh FAT32 or exFAT filesystem behind instead of a blank disk |
 | `--allow-internal` | Allow an internal disk. The disk holding the running system is always refused |
+| `--json` | Print the result as one JSON object, for scripts |
 
-`--passes=3` works too, and `--` ends the options. The environment variables `KIYOME_PASSES=N`, `KIYOME_CREATE=y` and `KIYOME_ALLOW_INTERNAL=y` set the same options; an option on the command line wins.
+`--passes=3` works too, and `--` ends the options. The environment variables `KIYOME_PASSES=N`, `KIYOME_CREATE=y`, `KIYOME_ALLOW_INTERNAL=y` and `KIYOME_JSON=y` set the same options; an option on the command line wins.
 
 ```bash
 kiyome /dev/disk4                 # one pass, then eject

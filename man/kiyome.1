@@ -51,6 +51,11 @@ Leave a fresh FAT or exFAT filesystem behind.
 .TP
 .B \-\-allow\-internal
 Allow an internal disk. The disk holding the running system is always refused.
+.TP
+.B \-\-json
+Print the result as one JSON object on stdout, for scripts: the disk, its size
+in bytes, the number of passes, whether every pattern read back as written,
+and whether a fresh filesystem was left behind.
 .PP
 Every option that takes a value also takes the form
 .IR \-\-name = value ,
@@ -74,6 +79,12 @@ Set to
 .B y
 for the same effect as
 .BR \-\-allow\-internal .
+.TP
+.B KIYOME_JSON
+Set to
+.B y
+for the same effect as
+.BR \-\-json .
 .PP
 An option on the command line wins over the environment.
 .SH EXIT STATUS

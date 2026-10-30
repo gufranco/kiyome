@@ -111,8 +111,9 @@ openssl            ok       /usr/bin/openssl
 | `--passes N` | 把五種圖案重複 N 次，預設 1 次 |
 | `--create` | 最後留下一個全新的 FAT32 或 exFAT 檔案系統，而不是空白磁碟 |
 | `--allow-internal` | 允許內置磁碟。正在運行的系統所在的磁碟一定會被拒絕 |
+| `--json` | 以一個 JSON 物件輸出結果，供程式腳本使用 |
 
-也可以寫成 `--passes=3`，`--` 表示選項結束。環境變數 `KIYOME_PASSES=N`、`KIYOME_CREATE=y` 和 `KIYOME_ALLOW_INTERNAL=y` 設定的是同樣的選項，命令列上的選項優先。
+也可以寫成 `--passes=3`，`--` 表示選項結束。環境變數 `KIYOME_PASSES=N`、`KIYOME_CREATE=y`、`KIYOME_ALLOW_INTERNAL=y` 和 `KIYOME_JSON=y` 設定的是同樣的選項，命令列上的選項優先。
 
 ```bash
 kiyome /dev/disk4                 # 一輪，然後退出

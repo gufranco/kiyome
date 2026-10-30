@@ -44,10 +44,11 @@ options:
   --passes N          repeat the five patterns N times (default 1)
   --create            leave a fresh FAT or exFAT filesystem behind
   --allow-internal    allow an internal disk. the system disk is always refused
+  --json              print the result as one JSON object, for scripts
 
 environment:
-  KIYOME_PASSES=N, KIYOME_CREATE=y and KIYOME_ALLOW_INTERNAL=y set the same
-  options. an option on the command line wins.
+  KIYOME_PASSES=N, KIYOME_CREATE=y, KIYOME_ALLOW_INTERNAL=y and KIYOME_JSON=y
+  set the same options. an option on the command line wins.
 
 notes:
   A disk is named by its device, such as /dev/disk4, or by any volume mounted
@@ -69,6 +70,7 @@ disk_option_flag() {
   case "$1" in
   --create) KIYOME_CREATE=y ;;
   --allow-internal) KIYOME_ALLOW_INTERNAL=y ;;
+  --json) KIYOME_JSON=y ;;
   *) return 1 ;;
   esac
   return 0
@@ -84,7 +86,7 @@ disk_wipe_ask() {
   if [ -z "${KIYOME_PASSES:-}" ]; then
     KIYOME_PASSES="$(disk_prompt "Passes" 1)" || return 1
   fi
-  disk_wipe_run "${disk_wk_disk}"
+  disk_wipe_report "${disk_wk_disk}"
 }
 
 disk_wipe_check_passes() {
@@ -125,6 +127,7 @@ disk_wipe_plan() {
 }
 
 disk_wipe_summary() {
+  [ "${KIYOME_JSON:-n}" != y ] || return 0
   printf '\n'
   disk_ws_human="$(disk_human "${DISK_SIZE}")"
   disk_info "Device: $1, ${disk_ws_human}, ${DISK_IDENTITY:-unnamed device}"
@@ -175,6 +178,7 @@ disk_wipe_passes() {
     disk_execute_pass "$1" "$2" "${disk_wp_index}" "$3" || return 1
     disk_wp_index=$((disk_wp_index + 1))
   done
+  DISK_WIPED=true
   disk_success "Wiped $1: every byte of every pattern read back as written."
   return 0
 }
@@ -259,7 +263,7 @@ disk_wipe_start() {
     return 1
   fi
   if [ "$#" -eq 1 ]; then
-    disk_wipe_run "$1"
+    disk_wipe_report "$1"
     return "$?"
   fi
   if disk_cli_interactive; then
@@ -270,10 +274,22 @@ disk_wipe_start() {
   return 1
 }
 
+disk_wipe_report() {
+  disk_wr_status=0
+  disk_wipe_run "$1" || disk_wr_status=1
+  if [ "${KIYOME_JSON:-n}" = y ] && [ -n "${DISK_TARGET}" ]; then
+    disk_wr_device="$(disk_json_string "${DISK_TARGET}")"
+    printf '{"device":%s,"bytes":%s,"passes":%s,"wiped":%s,"created":%s}\n' \
+      "${disk_wr_device}" "${DISK_SIZE}" "${KIYOME_PASSES:-1}" "${DISK_WIPED}" "${DISK_CREATED}"
+  fi
+  return "${disk_wr_status}"
+}
+
 disk_wipe_run() {
   disk_wipe_check_passes "${KIYOME_PASSES:-1}" || return 1
   disk_wm_disk="$(disk_resolve "$1")" || return 1
   disk_refuse_target "${disk_wm_disk}" || return 1
+  DISK_TARGET="${disk_wm_disk}"
   DISK_ERRFILE=""
   DISK_LAST_ERROR=""
   DISK_LAST_DETAIL=""
@@ -295,8 +311,9 @@ disk_wipe_run() {
   disk_drop_tmpdir
   [ "${disk_wm_status}" -ne 0 ] && return 1
 
-  if [ "${KIYOME_CREATE:-}" = "y" ] && ! disk_create_partition "${disk_wm_disk}" "${DISK_SIZE}"; then
-    return 1
+  if [ "${KIYOME_CREATE:-}" = "y" ]; then
+    disk_create_partition "${disk_wm_disk}" "${DISK_SIZE}" || return 1
+    DISK_CREATED=true
   fi
   disk_wipe_eject "${disk_wm_disk}"
 }

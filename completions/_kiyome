@@ -17,6 +17,7 @@ _kiyome() {
     '--passes[repeat the five patterns N times]:passes:' \
     '--create[leave a fresh FAT or exFAT filesystem behind]' \
     '--allow-internal[allow an internal disk]' \
+    '--json[print the result as one JSON object, for scripts]' \
     '*:device:_files'
 }
 

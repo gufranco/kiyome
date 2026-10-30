@@ -111,8 +111,9 @@ openssl            ok       /usr/bin/openssl
 | `--passes N` | 5つのパターンをN回繰り返します。既定は1回です |
 | `--create` | 空のディスクではなく、新しいFAT32またはexFATのファイルシステムを残します |
 | `--allow-internal` | 内蔵ディスクを許可します。動作中のシステムがあるディスクは常に拒否されます |
+| `--json` | 結果を1つのJSONオブジェクトとして出力します（スクリプト向け） |
 
-`--passes=3`の形も使え、`--`でオプションが終わります。環境変数`KIYOME_PASSES=N`、`KIYOME_CREATE=y`、`KIYOME_ALLOW_INTERNAL=y`も同じ設定になり、コマンドラインのオプションが優先されます。
+`--passes=3`の形も使え、`--`でオプションが終わります。環境変数`KIYOME_PASSES=N`、`KIYOME_CREATE=y`、`KIYOME_ALLOW_INTERNAL=y`、`KIYOME_JSON=y`も同じ設定になり、コマンドラインのオプションが優先されます。
 
 ```bash
 kiyome /dev/disk4                 # 1パスのあと取り出し
