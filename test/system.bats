@@ -373,6 +373,21 @@ exec \"\$REAL\" \"\$@\""
   [[ "${output}" == *"Device: ${DEVICE}"* ]]
 }
 
+@test "a partition node left with an old device number is not ready" {
+  # Arrange
+  [[ "${KIYOME_TEST_OS}" == "Linux" ]] || skip "only Linux tests make partition nodes by hand"
+  disk_test_fat_image "${WORK}/fat.img" 8 KIYOMESTALE
+  DEVICE="$(disk_test_attach_partitioned "${WORK}/fat.img")"
+  local stale="${WORK}/${DEVICE##*/}p1"
+  sudo mknod -m 660 "${stale}" b 7 1048000
+
+  # Act
+  run disk_test_partition_ready "${stale}"
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+}
+
 @test "kiyome refuses a mounted filesystem that is not a block device" {
   # Arrange
   [[ "${KIYOME_TEST_OS}" == "Linux" ]] || skip "macOS reports a device node for every mounted volume"

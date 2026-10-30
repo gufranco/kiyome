@@ -191,11 +191,24 @@ disk_test_wait_partition() {
     if [[ -S /run/udev/control ]]; then
       sudo udevadm settle >/dev/null 2>&1 || true
     fi
-    [[ -b "${node}" ]] && return 0
+    disk_test_partition_ready "${node}" && return 0
     sleep 0.1
     tries=$((tries + 1))
   done
   return 1
+}
+
+disk_test_partition_ready() {
+  local node="$1"
+  local sysfs="/sys/class/block/${node##*/}/dev"
+  local major minor current wanted
+  [[ -b "${node}" ]] || return 1
+  [[ "${KIYOME_TEST_OS}" == "Linux" ]] || return 0
+  [[ -r "${sysfs}" ]] || return 1
+  IFS=: read -r major minor <"${sysfs}"
+  current="$(stat -c '%t:%T' "${node}" 2>/dev/null)" || return 1
+  wanted="$(printf '%x:%x' "${major}" "${minor}")"
+  [[ "${current}" == "${wanted}" ]]
 }
 
 disk_test_partition_nodes_stop() {
