@@ -1,5 +1,18 @@
 # Changelog
 
+# [2.1.0](https://github.com/gufranco/kiyome/compare/v2.0.0...v2.1.0) (2026-10-30)
+
+
+### Bug Fixes
+
+* count dd bytes from its record counts ([c0c9ef1](https://github.com/gufranco/kiyome/commit/c0c9ef1193406f44e7e380be3b34ad740f3abc04))
+* read a BusyBox timeout 143 as a deadline ([d5f9bc9](https://github.com/gufranco/kiyome/commit/d5f9bc9cf00e29a2bb1048a57f401f8cb2140394))
+
+
+### Features
+
+* report a wipe as JSON with --json ([c16fab7](https://github.com/gufranco/kiyome/commit/c16fab74569d49c2ac20df424b62e809dad02126))
+
 # [2.0.0](https://github.com/gufranco/kiyome/compare/v1.1.0...v2.0.0) (2026-10-29)
 
 
