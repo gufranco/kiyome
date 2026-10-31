@@ -160,8 +160,15 @@ disk_test_attach_partitioned() {
   esac
 }
 
+disk_test_dev_is_devtmpfs() {
+  local fs_type
+  fs_type="$(findmnt -n -o FSTYPE /dev 2>/dev/null)" || return 1
+  [[ "${fs_type}" == "devtmpfs" ]]
+}
+
 disk_test_partition_nodes_start() {
   [[ "${KIYOME_TEST_OS}" == "Linux" ]] || return 0
+  disk_test_dev_is_devtmpfs && return 0
   (
     tries=0
     while [[ "${tries}" -lt 600 ]]; do
