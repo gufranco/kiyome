@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.1](https://github.com/gufranco/kiyome/compare/v2.1.0...v2.1.1) (2026-11-02)
+
+
+### Bug Fixes
+
+* read BusyBox from any line of its answer ([1a619ed](https://github.com/gufranco/kiyome/commit/1a619ede0ef00edb92061ec0c73a4db01c180803))
+
 # [2.1.0](https://github.com/gufranco/kiyome/compare/v2.0.0...v2.1.0) (2026-10-30)
 
 
