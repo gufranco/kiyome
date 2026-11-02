@@ -28,14 +28,26 @@ disk_flavor_version() {
   }'
 }
 
+disk_tool_line() {
+  disk_tl_line="$(printf '%s\n' "$1" | awk '/BusyBox|This is not GNU/ { print; exit }')"
+  if [ -z "${disk_tl_line}" ]; then
+    disk_tl_line="$(printf '%s\n' "$1" | sed -n '1p')"
+  fi
+  printf '%s\n' "${disk_tl_line}"
+}
+
 disk_tool_flavor() {
   disk_tf_raw="$("$1" --version 2>&1 </dev/null)" || true
-  disk_tf_text="$(printf '%s\n' "${disk_tf_raw}" | sed -n '1p')"
+  disk_tf_text="$(disk_tool_line "${disk_tf_raw}")"
   disk_tf_version="$(disk_flavor_version "${disk_tf_text}")"
   disk_tf_os="$(disk_os)"
   case "${disk_tf_text}" in
   *uutils*) disk_tf_name=uutils ;;
   *BusyBox*) disk_tf_name=busybox ;;
+  *"This is not GNU"*)
+    disk_tf_name=busybox
+    disk_tf_version=""
+    ;;
   *GNU* | *GLIBC* | *"(coreutils)"* | *"(diffutils)"*) disk_tf_name=gnu ;;
   *mawk*) disk_tf_name=mawk ;;
   *"awk version"* | *"(Darwin)"*) disk_tf_name=bsd ;;
