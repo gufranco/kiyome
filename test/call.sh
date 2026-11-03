@@ -11,8 +11,8 @@ DISK_LIB="$(cd "$(dirname "$0")/../lib" && pwd)" || exit 1
 . "${DISK_LIB}/calibrate.sh"
 # shellcheck source=SCRIPTDIR/../lib/wipe.sh
 . "${DISK_LIB}/wipe.sh"
-# shellcheck source=SCRIPTDIR/../lib/ui.sh
-. "${DISK_LIB}/ui.sh"
+# shellcheck source=SCRIPTDIR/../lib/disk.sh
+. "${DISK_LIB}/disk.sh"
 # shellcheck source=SCRIPTDIR/../lib/boot.sh
 . "${DISK_LIB}/boot.sh"
 # shellcheck source=SCRIPTDIR/../lib/cli.sh

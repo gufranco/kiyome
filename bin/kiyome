@@ -17,8 +17,8 @@ DISK_PROG=kiyome
 . "${DISK_LIB}/core.sh"
 # shellcheck source=SCRIPTDIR/../lib/cli.sh
 . "${DISK_LIB}/cli.sh"
-# shellcheck source=SCRIPTDIR/../lib/ui.sh
-. "${DISK_LIB}/ui.sh"
+# shellcheck source=SCRIPTDIR/../lib/disk.sh
+. "${DISK_LIB}/disk.sh"
 # shellcheck source=SCRIPTDIR/../lib/io.sh
 . "${DISK_LIB}/io.sh"
 # shellcheck source=SCRIPTDIR/../lib/calibrate.sh
