@@ -50,7 +50,8 @@ disk_wipe_run() {
 
 @test "kiyome leaves every byte of the device zero" {
   # Arrange
-  dd if=/dev/urandom of="${IMAGE}" bs=512 count=16 conv=notrunc 2>/dev/null
+  disk_test_random_bytes 8192 >"${WORK}/noise"
+  dd if="${WORK}/noise" of="${IMAGE}" bs=512 count=16 conv=notrunc 2>/dev/null
 
   # Act
   run disk_wipe_run

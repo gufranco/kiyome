@@ -271,11 +271,14 @@ disk_test_fat_image() {
   esac
 }
 
-disk_test_random_file() {
-  local file="$1"
-  local mebibytes="$2"
+disk_test_random_bytes() {
+  local count="$1"
+  local key
 
-  dd if=/dev/urandom of="${file}" bs=1048576 count="${mebibytes}" 2>/dev/null
+  DISK_TEST_RANDOM_CALLS=$((${DISK_TEST_RANDOM_CALLS:-0} + 1))
+  key="$(printf '%s:%s' "${BATS_TEST_NAME:-kiyome}" "${DISK_TEST_RANDOM_CALLS}" | openssl dgst -md5 -r)"
+  { head -c "${count}" /dev/zero || true; } |
+    openssl enc -aes-128-ctr -nosalt -K "${key%% *}" -iv 00000000000000000000000000000000
 }
 
 disk_test_fill() {
@@ -363,7 +366,7 @@ disk_test_windows_iso() {
   local iso="$1"
   local tree="${WORK:?}/isotree"
   mkdir -p "${tree}/sources" "${tree}/efi/boot" "${WORK}/payload"
-  dd if=/dev/urandom of="${WORK}/payload/blob" bs=1048576 count=3 2>/dev/null
+  disk_test_random_bytes $((3 * 1048576)) >"${WORK}/payload/blob"
   wimlib-imagex capture "${WORK}/payload" "${tree}/sources/install.wim" --compress=none >/dev/null || return 1
   printf 'MZ fake loader\n' >"${tree}/efi/boot/bootx64.efi"
   printf 'MZ fake setup\n' >"${tree}/setup.exe"
