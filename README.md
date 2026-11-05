@@ -18,7 +18,7 @@ English | [日本語](README.ja.md) | [简体中文](README.zh-Hans.md) | [繁�
 
 </div>
 
-One command, 243 tests, 10 shell modules, and no runtime dependency beyond a POSIX system and gum. `kiyome` is 清め, Japanese for purification. Its companion [kakikomi](https://github.com/gufranco/kakikomi) writes disk images.
+One command, 254 tests, 10 shell modules, and no runtime dependency beyond a POSIX system and gum. `kiyome` is 清め, Japanese for purification. Its companion [kakikomi](https://github.com/gufranco/kakikomi) writes disk images.
 
 ---
 

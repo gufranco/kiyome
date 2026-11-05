@@ -18,7 +18,7 @@
 
 </div>
 
-一个命令，243 个测试，10 个 shell 模块，除 POSIX 系统和 gum 外没有任何运行时依赖。`kiyome` 是日语"清め"，意为净化。它的姊妹工具 [kakikomi](https://github.com/gufranco/kakikomi) 用来写入磁盘镜像。
+一个命令，254 个测试，10 个 shell 模块，除 POSIX 系统和 gum 外没有任何运行时依赖。`kiyome` 是日语"清め"，意为净化。它的姊妹工具 [kakikomi](https://github.com/gufranco/kakikomi) 用来写入磁盘镜像。
 
 ---
 

@@ -18,7 +18,7 @@
 
 </div>
 
-コマンドは1つ、テストは243件、シェルのモジュールは10個で、POSIXシステムとgum以外に実行時の依存はありません。`kiyome`は日本語の「清め」です。姉妹ツールの[kakikomi](https://github.com/gufranco/kakikomi)はディスクイメージを書き込みます。
+コマンドは1つ、テストは254件、シェルのモジュールは10個で、POSIXシステムとgum以外に実行時の依存はありません。`kiyome`は日本語の「清め」です。姉妹ツールの[kakikomi](https://github.com/gufranco/kakikomi)はディスクイメージを書き込みます。
 
 ---
 

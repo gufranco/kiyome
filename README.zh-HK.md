@@ -18,7 +18,7 @@
 
 </div>
 
-一條指令，243 個測試，10 個 shell 模組，除了 POSIX 系統和 gum 之外沒有任何執行時依賴。`kiyome` 是日文「清め」，意思是淨化。姊妹工具 [kakikomi](https://github.com/gufranco/kakikomi) 負責寫入磁碟映像。
+一條指令，254 個測試，10 個 shell 模組，除了 POSIX 系統和 gum 之外沒有任何執行時依賴。`kiyome` 是日文「清め」，意思是淨化。姊妹工具 [kakikomi](https://github.com/gufranco/kakikomi) 負責寫入磁碟映像。
 
 ---
 
