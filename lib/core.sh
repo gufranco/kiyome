@@ -3,7 +3,7 @@
 # shellcheck source=SCRIPTDIR/state.sh
 . "${DISK_LIB:?}/state.sh"
 
-KIYOME_VERSION="2.1.1"
+KIYOME_VERSION="2.2.0"
 
 disk_version() {
   printf '%s %s\n' "${1:-${DISK_PROG}}" "${KIYOME_VERSION}"

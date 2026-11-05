@@ -1,5 +1,12 @@
 # Changelog
 
+# [2.2.0](https://github.com/gufranco/kiyome/compare/v2.1.1...v2.2.0) (2026-11-05)
+
+
+### Features
+
+* draw the terminal interface with gum ([670e133](https://github.com/gufranco/kiyome/commit/670e133ffddf5c6b050d45a97736a1e9970e1377))
+
 ## [2.1.1](https://github.com/gufranco/kiyome/compare/v2.1.0...v2.1.1) (2026-11-02)
 
 
