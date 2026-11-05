@@ -105,14 +105,21 @@ disk_pick_targets() {
     return 1
   fi
   disk_pt_index=0
+  disk_pt_lines=""
   for disk_pt_disk in ${disk_pt_list}; do
     disk_pt_index=$((disk_pt_index + 1))
     disk_pt_size="$(disk_size_bytes "${disk_pt_disk}")"
     disk_is_uint "${disk_pt_size}" || disk_pt_size=0
     disk_pt_human="$(disk_human "${disk_pt_size}")"
     disk_pt_id="$(disk_identity "${disk_pt_disk}")"
-    printf '  %d) %-14s %10s  %s\n' "${disk_pt_index}" "${disk_pt_disk}" "${disk_pt_human}" "${disk_pt_id}" >&2
+    disk_pt_lines="${disk_pt_lines}$(printf '%-14s %10s  %s|%s' "${disk_pt_disk}" "${disk_pt_human}" "${disk_pt_id}" "${disk_pt_disk}")
+"
+    disk_ui_prompts || printf '  %d) %-14s %10s  %s\n' "${disk_pt_index}" "${disk_pt_disk}" "${disk_pt_human}" "${disk_pt_id}" >&2
   done
+  if disk_ui_prompts; then
+    disk_pick_drawn "${disk_pt_lines}"
+    return
+  fi
   printf '%s' "${DISK_PICK_PROMPT:-Write to which disk(s)? Numbers or names, separated by commas: }" >&2
   disk_pt_answer=""
   IFS= read -r disk_pt_answer
@@ -121,6 +128,12 @@ disk_pick_targets() {
     disk_pick_one "${disk_pt_choice}" "${disk_pt_list}" "${disk_pt_index}" || return 1
   done
   return 0
+}
+
+disk_pick_drawn() {
+  disk_pd_prompt="${DISK_PICK_PROMPT:-Write to which disk(s)?}"
+  disk_pd_header="${disk_pd_prompt%%\?*}?"
+  printf '%s' "$1" | disk_ui_choose "${disk_pd_header}" --label-delimiter "|"
 }
 
 disk_pick_one() {
@@ -172,9 +185,14 @@ disk_confirm_names() {
   for disk_cn_target in $1; do
     disk_cn_expected="${disk_cn_expected}${disk_cn_expected:+ }${disk_cn_target##*/}"
   done
-  printf 'Type %s to %s, or anything else to stop: ' "${disk_cn_expected}" "$2" >&2
   disk_cn_answer=""
-  IFS= read -r disk_cn_answer
+  if disk_ui_prompts; then
+    disk_ui_danger "Everything on ${disk_cn_expected} is lost." "Check the name before you type it."
+    disk_cn_answer="$(disk_ui_input "Type ${disk_cn_expected} to $2, or anything else to stop" "${disk_cn_expected}")" || disk_cn_answer=""
+  else
+    printf 'Type %s to %s, or anything else to stop: ' "${disk_cn_expected}" "$2" >&2
+    IFS= read -r disk_cn_answer
+  fi
   disk_cn_given=""
   for disk_cn_word in ${disk_cn_answer}; do
     disk_cn_given="${disk_cn_given}${disk_cn_given:+ }${disk_cn_word##*/}"
@@ -201,9 +219,14 @@ disk_progress() {
   disk_pg_minutes=$((disk_pg_eta / 60))
   disk_pg_seconds=$((disk_pg_eta % 60))
   disk_pg_line="$(printf '%s %3d%%  %s/s  %dm%02ds left' "$1" "${disk_pg_percent}" "${disk_pg_speed}" "${disk_pg_minutes}" "${disk_pg_seconds}")"
+  if disk_ui_err; then
+    disk_progress_bar "$1" "${disk_pg_percent}" "$(printf '%s/s  %dm%02ds left' "${disk_pg_speed}" "${disk_pg_minutes}" "${disk_pg_seconds}")"
+    disk_progress_end "${disk_pg_done}" "${disk_pg_total}"
+    return 0
+  fi
   if [ -t 2 ]; then
     printf '\r%s   ' "${disk_pg_line}" >&2
-    [ "${disk_pg_done}" -ge "${disk_pg_total}" ] && printf '\n' >&2
+    disk_progress_end "${disk_pg_done}" "${disk_pg_total}"
     return 0
   fi
   disk_pg_step=$((disk_pg_percent / 10))
@@ -212,4 +235,48 @@ disk_progress() {
     disk_info "${disk_pg_line}"
   fi
   return 0
+}
+
+disk_progress_bar() {
+  disk_pb_full=$(($2 * 24 / 100))
+  disk_pb_char="$(printf '\342\224\201')"
+  disk_pb_done="$(printf '%*s' "${disk_pb_full}" '' | sed "s/ /${disk_pb_char}/g")"
+  disk_pb_rest="$(printf '%*s' $((24 - disk_pb_full)) '' | sed "s/ /${disk_pb_char}/g")"
+  disk_pb_done="$(disk_ui_ink "${DISK_UI_ACCENT}" -- "${disk_pb_done}")"
+  disk_pb_rest="$(disk_ui_ink "${DISK_UI_SURFACE}" -- "${disk_pb_rest}")"
+  disk_pb_tail="$(disk_ui_ink "${DISK_UI_MUTED}" -- "$3")"
+  printf '\r%s %s%s %3d%%  %s   ' "$1" "${disk_pb_done}" "${disk_pb_rest}" "$2" "${disk_pb_tail}" >&2
+}
+
+disk_summary_box() {
+  disk_sb_text="$1"
+  set --
+  while IFS= read -r disk_sb_line; do
+    case "${disk_sb_line}" in
+    "") continue ;;
+    " "*) set -- "$@" "" "${disk_sb_line#"${disk_sb_line%%[! ]*}"}" ;;
+    *)
+      disk_sb_value="${disk_sb_line#*:}"
+      set -- "$@" "${disk_sb_line%%:*}:" "${disk_sb_value#"${disk_sb_value%%[! ]*}"}"
+      ;;
+    esac
+  done <<EOF
+${disk_sb_text}
+EOF
+  disk_ui_summary "$@"
+}
+
+disk_progress_end() {
+  if [ "$1" -ge "$2" ]; then
+    printf '\n' >&2
+    DISK_PROGRESS_OPEN=0
+    return 0
+  fi
+  DISK_PROGRESS_OPEN=1
+}
+
+disk_progress_close() {
+  [ "${DISK_PROGRESS_OPEN}" = 1 ] || return 0
+  printf '\n' >&2
+  DISK_PROGRESS_OPEN=0
 }

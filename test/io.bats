@@ -241,7 +241,7 @@ exec \"\$REAL\" \"\$@\""
   [[ "${output}" == *"Ejected. ${DEVICE} is safe to remove."* ]]
 }
 
-@test "kiyome ejects the cartridge after a fault on Linux" {
+@test "kiyome ejects the disk after a fault on Linux" {
   # Arrange
   [[ "${KIYOME_TEST_OS}" == "Linux" ]] || skip "a disk image on macOS ejects through diskutil"
   disk_test_shim eject "exit 0"
@@ -252,7 +252,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"Cartridge ejected."* ]]
+  [[ "${output}" == *"Ejected ${DEVICE}."* ]]
 }
 
 @test "kiyome waits on every transfer when the deadline cap is zero" {

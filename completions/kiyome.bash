@@ -5,13 +5,17 @@ _kiyome() {
   local cur prev words
   cur="${COMP_WORDS[COMP_CWORD]}"
   prev="${COMP_WORDS[COMP_CWORD - 1]}"
+  if [[ "${COMP_WORDS[COMP_CWORD - 1]}" == "--theme" ]]; then
+    COMPREPLY=($(compgen -W "kodougu catppuccin-mocha catppuccin-latte dracula nord gruvbox tokyo-night mono" -- "${COMP_WORDS[COMP_CWORD]}"))
+    return
+  fi
 
   if [[ "${prev}" == "--passes" ]]; then
     COMPREPLY=()
     return
   fi
   if [[ "${cur}" == -* ]]; then
-    COMPREPLY=($(compgen -W "--passes --create --allow-internal --json" -- "${cur}"))
+    COMPREPLY=($(compgen -W "--passes --create --allow-internal --json --theme" -- "${cur}"))
     return
   fi
   words="$(compgen -f -- "${cur}" || true)"

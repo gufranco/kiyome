@@ -1,8 +1,8 @@
 SHELL := /bin/sh
 PREFIX ?= $(HOME)/.local
-SCRIPTS := bin/kiyome lib/*.sh scripts/*.sh .github/scripts/*.sh test/*.sh test/*.bash test/*.bats test/shim/sudo
+SCRIPTS := bin/kiyome lib/*.sh scripts/*.sh .github/scripts/*.sh test/*.sh test/*.bash test/*.bats test/shim/sudo test/bin/gum screens/*.sh
 
-.PHONY: help fmt lint test test-all test-linux coverage check install
+.PHONY: help fmt lint test test-all test-linux coverage check screens install
 
 help:
 	@echo "targets:"
@@ -13,6 +13,7 @@ help:
 	@echo "  test-linux  the same suites in a privileged Ubuntu container"
 	@echo "  coverage    bashcov line coverage on this Mac and in the Ubuntu container, gate 100%"
 	@echo "  check       lint and test"
+	@echo "  screens     record the README screens from the real tool with VHS, on macOS"
 	@echo "  install     install the tool, man page and completions under PREFIX (default ~/.local)"
 
 fmt:
@@ -20,7 +21,7 @@ fmt:
 
 lint:
 	shfmt -i 2 -d $(SCRIPTS)
-	shellcheck -x -s sh -o all bin/kiyome lib/*.sh scripts/*.sh .github/scripts/*.sh
+	shellcheck -x -s sh -o all bin/kiyome lib/*.sh scripts/*.sh .github/scripts/*.sh test/bin/gum screens/*.sh
 	sh scripts/check-names.sh
 	shellcheck -x -o all test/*.sh test/*.bash test/*.bats test/shim/sudo
 	shellcheck -s bash -o all completions/kiyome.bash
@@ -39,6 +40,9 @@ coverage:
 	sh scripts/coverage.sh 0 && cp -f coverage/.resultset.json coverage-macos.json
 	sh test/linux-container.sh sh scripts/linux-coverage.sh
 	python3 scripts/coverage-gate.py '/(bin/kiyome|lib/[a-z]+\.sh)\Z' 100 coverage-macos.json coverage-linux.json
+
+screens:
+	sh screens/record.sh
 
 check: lint test
 

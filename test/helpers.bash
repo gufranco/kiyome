@@ -4,6 +4,8 @@ KIYOME_TESTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(cd "${KIYOME_TESTS_DIR}/.." && pwd)"
 KIYOME_TEST_OS="$(uname -s)"
 export KIYOME_TESTS_DIR REPO_DIR KIYOME_TEST_OS
+PATH="${KIYOME_TESTS_DIR}/bin:${PATH}"
+export PATH
 
 disk_test_path() {
   local base="${PATH}"

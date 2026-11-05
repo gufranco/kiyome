@@ -361,3 +361,27 @@ source "${BATS_TEST_DIRNAME:-.}/helpers.bash"
   [[ "${status}" -eq 0 ]]
   [[ "${output}" == "512" ]]
 }
+
+@test "a Zip, Jaz or PocketZip ejected after a fault is called a cartridge" {
+  # Arrange
+  local family=zip
+
+  # Act
+  DISK_FAMILY="${family}" run disk_test_call disk_ejected_line /dev/sdz
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"Cartridge ejected."* ]]
+}
+
+@test "any other disk ejected after a fault is named by its device" {
+  # Arrange
+  local family=usb
+
+  # Act
+  DISK_FAMILY="${family}" run disk_test_call disk_ejected_line /dev/sdz
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"Ejected /dev/sdz."* ]]
+}

@@ -18,9 +18,13 @@
 
 </div>
 
-一个命令，166 个测试，9 个 shell 模块，除 POSIX 系统外没有任何运行时依赖。`kiyome` 是日语"清め"，意为净化。它的姊妹工具 [kakikomi](https://github.com/gufranco/kakikomi) 用来写入磁盘镜像。
+一个命令，243 个测试，10 个 shell 模块，除 POSIX 系统和 gum 外没有任何运行时依赖。`kiyome` 是日语"清め"，意为净化。它的姊妹工具 [kakikomi](https://github.com/gufranco/kakikomi) 用来写入磁盘镜像。
 
 ---
+
+<p align="center">
+  <img src="screens/hero.gif" alt="在终端中运行的 kiyome：从第一个输入到结果" width="800">
+</p>
 
 ```console
 $ kiyome /dev/disk6
@@ -60,6 +64,7 @@ Ejected. /dev/disk6 is safe to remove.
 
 | 工具 | 用途 | 安装 |
 |:-----|:----|:--------|
+| [`gum`](https://github.com/charmbracelet/gum) | 终端界面：菜单、输入、表格和配色 | `brew install gum`。Homebrew formula 会自动安装 |
 | POSIX `sh`、`dd`、`cmp`、`od` | 工具本身 | macOS 和 Linux 已预装，不需要 `bash` |
 | `openssl` | 每块各不相同的图案 | 已预装 |
 | `newfs_msdos`，或 `sfdisk` 和 `mkfs.fat` | macOS 或 Linux 上的 `--create` | macOS 已预装；Linux 上为 `apt install fdisk dosfstools` |
@@ -85,6 +90,7 @@ make install
 
 ```console
 $ kiyome doctor
+gum                ok       /opt/homebrew/bin/gum
 dd                 ok       /bin/dd, bsd
 cmp                ok       /usr/bin/cmp, bsd
 od                 ok       /usr/bin/od, bsd
@@ -112,6 +118,7 @@ openssl            ok       /usr/bin/openssl
 | `--create` | 最后留下一个全新的 FAT32 或 exFAT 文件系统，而不是空白磁盘 |
 | `--allow-internal` | 允许内置磁盘。运行中系统所在的磁盘始终被拒绝 |
 | `--json` | 以一个 JSON 对象输出结果，供脚本使用 |
+| `--theme <name>` | 终端界面的配色 |
 
 也可以写成 `--passes=3`，`--` 表示选项结束。环境变量 `KIYOME_PASSES=N`、`KIYOME_CREATE=y`、`KIYOME_ALLOW_INTERNAL=y` 和 `KIYOME_JSON=y` 设置的是同样的选项，命令行上的选项优先。
 
@@ -125,6 +132,14 @@ kiyome --create /Volumes/USB      # 最后留下 FAT32 或 exFAT 文件系统
 磁盘可以用设备名指定，例如 `/dev/disk4`，也可以用它挂载出的任何卷指定，例如 `/Volumes/USB`；kiyome 会找出卷背后的整个磁盘，并擦除整个磁盘。
 
 kiyome 遵循同系列工具共用的命令行约定，详见 [FAMILY.md](FAMILY.md)。
+
+### 主题
+
+在装有 `gum` 的终端里，kiyome 用 gum 绘制菜单、输入、表格和消息；在管道或脚本中，输出仍是纯文本。配色依次由 `--theme`、`KIYOME_THEME`、`KODOUGU_THEME` 决定，最后一个由所有 kodougu 工具共用：`kodougu`（默认）、`catppuccin-mocha`、`catppuccin-latte`、`dracula`、`nord`、`gruvbox`、`tokyo-night` 或 `mono`。`KODOUGU_ACCENT=#RRGGBB` 只替换强调色，`NO_COLOR` 关闭颜色。
+
+```bash
+export KODOUGU_THEME=catppuccin-mocha
+```
 
 <a id="how-it-works"></a>
 
@@ -163,6 +178,35 @@ kiyome 先测量磁盘自身的速度，再据此给每次传输设定期限。�
 
 它能在五种常用工具集上运行：Linux 上的 GNU 或 uutils coreutils，以及 macOS 自带的工具、Homebrew 中更新的版本或 Homebrew 的 uutils 工具。macOS 自带而 Homebrew 有更新版本的工具，从 bash 和 zsh 到 openssl 和 perl，两个版本都会测试。CI 在每种工具集上运行全部测试，`kiyome doctor` 会列出每个核心工具的类型和版本，例如 `gnu 9.7`、`uutils 0.12.0` 或 `bsd 20200816`，让错误报告说明用的是哪些工具。
 
+<a id="screens"></a>
+
+## 界面
+
+<details>
+<summary>全部界面，均由 <code>make screens</code> 录自真实运行</summary>
+<br>
+
+<table>
+<tr>
+<td width="50%" valign="top"><img src="screens/confirm.png" alt="kiyome: 危险框下输入名称"><br><sub>危险框下输入名称</sub></td>
+<td width="50%" valign="top"><img src="screens/result.png" alt="kiyome: 结果"><br><sub>结果</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/picker.png" alt="kiyome: 选择磁盘"><br><sub>选择磁盘</sub></td>
+<td width="50%" valign="top"><img src="screens/error.png" alt="kiyome: 错误"><br><sub>错误</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/doctor.png" alt="kiyome: doctor 检查所需的每个工具"><br><sub>doctor 检查所需的每个工具</sub></td>
+<td width="50%" valign="top"><img src="screens/themes.png" alt="kiyome: 六种主题下的版本标记"><br><sub>六种主题下的版本标记</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/help.png" alt="kiyome: 帮助页"><br><sub>帮助页</sub></td>
+<td width="50%"></td>
+</tr>
+</table>
+
+</details>
+
 <a id="development"></a>
 
 ## 开发
@@ -175,6 +219,7 @@ kiyome 先测量磁盘自身的速度，再据此给每次传输设定期限。�
 | `make test-all` | 在每种 shell 下运行同样的测试，macOS 上包括 bash 和 zsh 的两个版本 |
 | `make test-linux` | 在 Ubuntu 容器中运行同样的测试 |
 | `make coverage` | 合并这台 Mac 与 Ubuntu 容器中的 bashcov 行覆盖率，以及 CI 强制的 100% 门槛 |
+| `make screens` | 在 macOS 上用 VHS 从真实工具录制 README 的界面 |
 
 测试用 `hdiutil` 或 `losetup` 挂接以文件为后端的磁盘，并真实擦除。CI 在 Ubuntu 和 macOS 上运行。推送到 `main` 且 CI 通过后会运行 semantic-release：含 `feat` 或 `fix` 提交时会发布 release，更新 [`lib/core.sh`](lib/core.sh) 中的 `KIYOME_VERSION` 和 CHANGELOG，并更新 Homebrew formula。
 

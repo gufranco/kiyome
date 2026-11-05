@@ -56,6 +56,20 @@ Allow an internal disk. The disk holding the running system is always refused.
 Print the result as one JSON object on stdout, for scripts: the disk, its size
 in bytes, the number of passes, whether every pattern read back as written,
 and whether a fresh filesystem was left behind.
+.TP
+.BI \-\-theme " name"
+Colours of the terminal interface:
+.BR kodougu ,
+.BR catppuccin\-mocha ,
+.BR catppuccin\-latte ,
+.BR dracula ,
+.BR nord ,
+.BR gruvbox ,
+.B tokyo\-night
+or
+.BR mono .
+The default is
+.BR kodougu .
 .PP
 Every option that takes a value also takes the form
 .IR \-\-name = value ,
@@ -87,6 +101,24 @@ for the same effect as
 .BR \-\-json .
 .PP
 An option on the command line wins over the environment.
+.TP
+.B KIYOME_THEME
+The theme when
+.B \-\-theme
+is not given.
+.TP
+.B KODOUGU_THEME
+The theme of every kodougu tool, when neither
+.B \-\-theme
+nor
+.B KIYOME_THEME
+is set.
+.TP
+.B KODOUGU_ACCENT
+A colour such as #CBA6F7 that replaces the accent of the theme.
+.TP
+.B NO_COLOR
+Turns colour off in every theme.
 .SH EXIT STATUS
 0 when every pattern read back as written, 1 on any failure or refusal.
 .SH SEE ALSO

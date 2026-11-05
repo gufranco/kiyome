@@ -60,12 +60,20 @@ disk_unmount_for_write() {
   esac
 }
 
+disk_ejected_line() {
+  if disk_head_crash_family; then
+    disk_success "Cartridge ejected."
+    return 0
+  fi
+  disk_success "Ejected $1."
+}
+
 disk_eject_now() {
   disk_en_os="$(disk_os)"
   case "${disk_en_os}" in
   Darwin)
     if disk_bounded 30 sudo diskutil eject "$1" >/dev/null 2>&1; then
-      disk_success "Cartridge ejected."
+      disk_ejected_line "$1"
       return 0
     fi
     if disk_bounded 20 sudo diskutil unmountDisk force "$1" >/dev/null 2>&1; then
@@ -76,7 +84,7 @@ disk_eject_now() {
     ;;
   Linux)
     if disk_bounded 30 sudo eject "$1" >/dev/null 2>&1; then
-      disk_success "Cartridge ejected."
+      disk_ejected_line "$1"
       return 0
     fi
     disk_error "the drive did not eject within the time allowed."

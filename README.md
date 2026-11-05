@@ -18,9 +18,13 @@ English | [日本語](README.ja.md) | [简体中文](README.zh-Hans.md) | [繁�
 
 </div>
 
-One command, 166 tests, 9 shell modules, and no runtime dependency beyond a POSIX system. `kiyome` is 清め, Japanese for purification. Its companion [kakikomi](https://github.com/gufranco/kakikomi) writes disk images.
+One command, 243 tests, 10 shell modules, and no runtime dependency beyond a POSIX system and gum. `kiyome` is 清め, Japanese for purification. Its companion [kakikomi](https://github.com/gufranco/kakikomi) writes disk images.
 
 ---
+
+<p align="center">
+  <img src="screens/hero.gif" alt="kiyome running in a terminal, from the first prompt to the result" width="800">
+</p>
 
 ```console
 $ kiyome /dev/disk6
@@ -60,6 +64,7 @@ Ejected. /dev/disk6 is safe to remove.
 
 | Tool | Why | Install |
 |:-----|:----|:--------|
+| [`gum`](https://github.com/charmbracelet/gum) | The terminal interface: menus, prompts, tables and colours | `brew install gum`. Installed automatically by the Homebrew formula |
 | POSIX `sh`, `dd`, `cmp`, `od` | The tool itself | Preinstalled on macOS and Linux. `bash` is not required |
 | `openssl` | The per-chunk unique pattern | Preinstalled |
 | `newfs_msdos`, or `sfdisk` and `mkfs.fat` | `--create` on macOS, or on Linux | Preinstalled on macOS; `apt install fdisk dosfstools` |
@@ -85,6 +90,7 @@ make install
 
 ```console
 $ kiyome doctor
+gum                ok       /opt/homebrew/bin/gum
 dd                 ok       /bin/dd, bsd
 cmp                ok       /usr/bin/cmp, bsd
 od                 ok       /usr/bin/od, bsd
@@ -112,6 +118,7 @@ openssl            ok       /usr/bin/openssl
 | `--create` | Leave a fresh FAT32 or exFAT filesystem behind instead of a blank disk |
 | `--allow-internal` | Allow an internal disk. The disk holding the running system is always refused |
 | `--json` | Print the result as one JSON object, for scripts |
+| `--theme <name>` | Colours of the terminal interface |
 
 `--passes=3` works too, and `--` ends the options. The environment variables `KIYOME_PASSES=N`, `KIYOME_CREATE=y`, `KIYOME_ALLOW_INTERNAL=y` and `KIYOME_JSON=y` set the same options; an option on the command line wins.
 
@@ -125,6 +132,14 @@ kiyome --create /Volumes/USB      # leave a FAT32 or exFAT filesystem behind
 A disk is named by its device, such as `/dev/disk4`, or by any volume mounted from it, such as `/Volumes/USB`; kiyome works out the whole disk behind the volume and wipes all of it.
 
 kiyome follows the shared command-line contract of its family, described in [FAMILY.md](FAMILY.md).
+
+### Themes
+
+On a terminal with `gum` installed, kiyome draws its menus, prompts, tables and messages with gum; in a pipe or a script the output stays plain text. `--theme`, else `KIYOME_THEME`, else `KODOUGU_THEME` picks the colours, the last one shared by every kodougu tool: `kodougu` (default), `catppuccin-mocha`, `catppuccin-latte`, `dracula`, `nord`, `gruvbox`, `tokyo-night` or `mono`. `KODOUGU_ACCENT=#RRGGBB` replaces only the accent, and `NO_COLOR` turns colour off.
+
+```bash
+export KODOUGU_THEME=catppuccin-mocha
+```
 
 <a id="how-it-works"></a>
 
@@ -163,6 +178,35 @@ Everything is POSIX `sh` with ShellCheck `-o all` at zero findings and no disabl
 
 Every run works on the five toolsets in common use: Linux with GNU or uutils coreutils, and macOS with the tools it ships, Homebrew's newer builds of them, or Homebrew's uutils tools. Every tool macOS ships that Homebrew also builds newer, from bash and zsh to openssl and perl, is tested in both builds. CI runs the whole suite on each, and `kiyome doctor` names the flavor and version of every core tool, such as `gnu 9.7`, `uutils 0.12.0` or `bsd 20200816`, so a bug report says which tools ran.
 
+<a id="screens"></a>
+
+## Screens
+
+<details>
+<summary>Every screen, recorded from a real run with <code>make screens</code></summary>
+<br>
+
+<table>
+<tr>
+<td width="50%" valign="top"><img src="screens/confirm.png" alt="kiyome: The typed name, under the danger box"><br><sub>The typed name, under the danger box</sub></td>
+<td width="50%" valign="top"><img src="screens/result.png" alt="kiyome: The result"><br><sub>The result</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/picker.png" alt="kiyome: The disk picker"><br><sub>The disk picker</sub></td>
+<td width="50%" valign="top"><img src="screens/error.png" alt="kiyome: An error"><br><sub>An error</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/doctor.png" alt="kiyome: doctor checks every tool it needs"><br><sub>doctor checks every tool it needs</sub></td>
+<td width="50%" valign="top"><img src="screens/themes.png" alt="kiyome: The version badge in six themes"><br><sub>The version badge in six themes</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/help.png" alt="kiyome: The help page"><br><sub>The help page</sub></td>
+<td width="50%"></td>
+</tr>
+</table>
+
+</details>
+
 <a id="development"></a>
 
 ## Development
@@ -175,6 +219,7 @@ Every run works on the five toolsets in common use: Linux with GNU or uutils cor
 | `make test-all` | The same tests under every shell, both builds of bash and zsh included on macOS |
 | `make test-linux` | The same tests in an Ubuntu container |
 | `make coverage` | bashcov line coverage on this Mac and in the Ubuntu container, merged, with the 100% gate CI enforces |
+| `make screens` | Record the README screens from the real tool with VHS, on macOS |
 
 The tests attach file-backed disks with `hdiutil` or `losetup` and wipe them for real. CI runs them on Ubuntu and macOS. Once CI passes on a push to `main`, semantic-release runs: a `feat` or `fix` commit publishes a release, updates `KIYOME_VERSION` in [`lib/core.sh`](lib/core.sh) and the CHANGELOG, and bumps the Homebrew formula.
 

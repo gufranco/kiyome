@@ -15,6 +15,8 @@ DISK_LIB="$(cd "${disk_self%/*}/../lib" && pwd)" || exit 1
 DISK_PROG=kiyome
 # shellcheck source=SCRIPTDIR/../lib/core.sh
 . "${DISK_LIB}/core.sh"
+# shellcheck source=SCRIPTDIR/../lib/ui.sh
+. "${DISK_LIB}/ui.sh"
 # shellcheck source=SCRIPTDIR/../lib/cli.sh
 . "${DISK_LIB}/cli.sh"
 # shellcheck source=SCRIPTDIR/../lib/disk.sh
@@ -29,6 +31,14 @@ DISK_PROG=kiyome
 . "${DISK_LIB}/boot.sh"
 
 disk_wipe_usage() {
+  if disk_ui_out; then
+    disk_wipe_usage_text | disk_ui_markdown | disk_gum format --theme "${DISK_UI_HELP}"
+    return 0
+  fi
+  disk_wipe_usage_text
+}
+
+disk_wipe_usage_text() {
   cat <<'USAGE'
 kiyome - overwrite a disk with five verified patterns, naming any bad bit line
 
@@ -45,6 +55,7 @@ options:
   --create            leave a fresh FAT or exFAT filesystem behind
   --allow-internal    allow an internal disk. the system disk is always refused
   --json              print the result as one JSON object, for scripts
+  --theme NAME        colours of the terminal interface, see notes
 
 environment:
   KIYOME_PASSES=N, KIYOME_CREATE=y, KIYOME_ALLOW_INTERNAL=y and KIYOME_JSON=y
@@ -57,6 +68,12 @@ notes:
   Each pass writes per-chunk unique AES-CTR data, then 0xAA, 0x55, 0xFF and
   0x00, and reads every one back. A wrong byte is reported with the bit lines
   involved, which tells a stuck data line apart from worn media.
+
+  On a terminal with gum installed, kiyome draws its prompts, summary and
+  progress with gum. --theme, else KIYOME_THEME, else KODOUGU_THEME picks the
+  colours: kodougu, catppuccin-mocha, catppuccin-latte, dracula, nord,
+  gruvbox, tokyo-night or mono. KODOUGU_ACCENT=#RRGGBB replaces only the
+  accent, and NO_COLOR turns colour off.
 
 examples:
   kiyome /dev/disk4
@@ -82,6 +99,9 @@ disk_option_value() {
 }
 
 disk_wipe_ask() {
+  if disk_ui_prompts; then
+    disk_ui_header
+  fi
   disk_wk_disk="$(disk_pick_single "Wipe which disk? Number or name: ")" || return 1
   if [ -z "${KIYOME_PASSES:-}" ]; then
     KIYOME_PASSES="$(disk_prompt "Passes" 1)" || return 1
@@ -128,6 +148,13 @@ disk_wipe_plan() {
 
 disk_wipe_summary() {
   [ "${KIYOME_JSON:-n}" != y ] || return 0
+  if [ "${DISK_SUMMARY_BOXED}" = no ] && disk_ui_out; then
+    DISK_SUMMARY_BOXED=yes
+    disk_ws_text="$(disk_wipe_summary "$1" "$2")"
+    DISK_SUMMARY_BOXED=no
+    disk_summary_box "${disk_ws_text}"
+    return 0
+  fi
   printf '\n'
   disk_ws_human="$(disk_human "${DISK_SIZE}")"
   disk_info "Device: $1, ${disk_ws_human}, ${DISK_IDENTITY:-unnamed device}"
@@ -135,7 +162,7 @@ disk_wipe_summary() {
   disk_ws_parts="$(disk_partitions_text "$1")"
   if [ -n "${disk_ws_parts}" ]; then
     disk_info "        Everything on it is erased, including:"
-    disk_say 10 "${disk_ws_parts}"
+    disk_say "${disk_ws_parts}"
   fi
   disk_wipe_plan "$2"
   printf '\n'
@@ -226,6 +253,44 @@ disk_wipe_prepare() {
 }
 
 disk_wipe_main() {
+  disk_mn_count=$#
+  disk_mn_literal=no
+  while [ "${disk_mn_count}" -gt 0 ]; do
+    disk_mn_arg="$1"
+    shift
+    disk_mn_count=$((disk_mn_count - 1))
+    case "${disk_mn_literal}:${disk_mn_arg}" in
+    no:--) disk_mn_literal=yes ;;
+    no:--theme=*)
+      DISK_THEME="${disk_mn_arg#--theme=}"
+      continue
+      ;;
+    no:--theme)
+      [ "${disk_mn_count}" -gt 0 ] || disk_main_stop "option '--theme' needs a value"
+      DISK_THEME="$1"
+      shift
+      disk_mn_count=$((disk_mn_count - 1))
+      continue
+      ;;
+    *) ;;
+    esac
+    set -- "$@" "${disk_mn_arg}"
+  done
+  disk_ui_setup || disk_main_fail "${DISK_UI_PROBLEM}"
+  disk_wipe_route "$@"
+}
+
+disk_main_stop() {
+  disk_cli_hint "$1"
+  exit 1
+}
+
+disk_main_fail() {
+  disk_error "$1"
+  exit 1
+}
+
+disk_wipe_route() {
   case "${1:-}" in
   help | -h | --help) disk_wipe_usage ;;
   version | -V | --version) disk_cli_version ;;

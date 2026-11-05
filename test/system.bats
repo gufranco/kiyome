@@ -495,11 +495,11 @@ exec \"\$REAL\" \"\$@\""
   # Arrange
   local -a shell_words
   read -r -a shell_words <<<"${KIYOME_TEST_SHELL:-sh}"
-  local search_path
-  search_path="$(disk_test_path)"
+  local farm
+  farm="$(disk_test_farm gum)"
 
   # Act
-  run on_terminal env PATH="${search_path}" "${shell_words[@]}" "${KIYOME_TESTS_DIR}/call.sh" disk_progress "Pass 1 of 1, writing 0xAA" 1048576 1048576 0
+  run on_terminal env PATH="${farm}" "${shell_words[@]}" "${KIYOME_TESTS_DIR}/call.sh" disk_progress "Pass 1 of 1, writing 0xAA" 1048576 1048576 0
 
   # Assert
   [[ "${output}" == *"Pass 1 of 1, writing 0xAA 100%"* ]]

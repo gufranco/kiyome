@@ -18,9 +18,13 @@
 
 </div>
 
-コマンドは1つ、テストは166件、シェルのモジュールは9個で、POSIXシステム以外に実行時の依存はありません。`kiyome`は日本語の「清め」です。姉妹ツールの[kakikomi](https://github.com/gufranco/kakikomi)はディスクイメージを書き込みます。
+コマンドは1つ、テストは243件、シェルのモジュールは10個で、POSIXシステムとgum以外に実行時の依存はありません。`kiyome`は日本語の「清め」です。姉妹ツールの[kakikomi](https://github.com/gufranco/kakikomi)はディスクイメージを書き込みます。
 
 ---
+
+<p align="center">
+  <img src="screens/hero.gif" alt="ターミナルで実行した kiyome：最初の入力から結果まで" width="800">
+</p>
 
 ```console
 $ kiyome /dev/disk6
@@ -60,6 +64,7 @@ Ejected. /dev/disk6 is safe to remove.
 
 | ツール | 用途 | インストール |
 |:-----|:----|:--------|
+| [`gum`](https://github.com/charmbracelet/gum) | 端末の画面：メニュー、入力、表、配色 | `brew install gum`。Homebrewのformulaが自動でインストールします |
 | POSIX `sh`、`dd`、`cmp`、`od` | ツール本体 | macOSとLinuxにプリインストールされています。`bash`は不要です |
 | `openssl` | チャンクごとに異なるパターン | プリインストールされています |
 | `newfs_msdos`、または`sfdisk`と`mkfs.fat` | macOSまたはLinuxでの`--create` | macOSにはプリインストール済み。Linuxでは`apt install fdisk dosfstools` |
@@ -85,6 +90,7 @@ make install
 
 ```console
 $ kiyome doctor
+gum                ok       /opt/homebrew/bin/gum
 dd                 ok       /bin/dd, bsd
 cmp                ok       /usr/bin/cmp, bsd
 od                 ok       /usr/bin/od, bsd
@@ -112,6 +118,7 @@ openssl            ok       /usr/bin/openssl
 | `--create` | 空のディスクではなく、新しいFAT32またはexFATのファイルシステムを残します |
 | `--allow-internal` | 内蔵ディスクを許可します。動作中のシステムがあるディスクは常に拒否されます |
 | `--json` | 結果を1つのJSONオブジェクトとして出力します（スクリプト向け） |
+| `--theme <name>` | 端末の画面の配色 |
 
 `--passes=3`の形も使え、`--`でオプションが終わります。環境変数`KIYOME_PASSES=N`、`KIYOME_CREATE=y`、`KIYOME_ALLOW_INTERNAL=y`、`KIYOME_JSON=y`も同じ設定になり、コマンドラインのオプションが優先されます。
 
@@ -125,6 +132,14 @@ kiyome --create /Volumes/USB      # FAT32またはexFATのファイルシステ�
 ディスクはデバイス名（`/dev/disk4` など）でも、そのディスクからマウントされたボリューム（`/Volumes/USB` など）でも指定できます。kiyome はボリュームの背後にあるディスク全体を突き止め、全体を消去します。
 
 kiyomeはファミリー共通のコマンドライン規約に従います。内容は[FAMILY.md](FAMILY.md)にあります。
+
+### テーマ
+
+`gum`がインストールされた端末では、kiyomeはメニュー、入力、表、メッセージをgumで描きます。パイプやスクリプトでは、出力はプレーンテキストのままです。配色は`--theme`、なければ`KIYOME_THEME`、なければ`KODOUGU_THEME`で選びます。最後のものはkodouguのすべてのツールが共有します：`kodougu` （既定）、`catppuccin-mocha`、`catppuccin-latte`、`dracula`、`nord`、`gruvbox`、`tokyo-night`、`mono`。`KODOUGU_ACCENT=#RRGGBB`はアクセント色だけを置き換え、`NO_COLOR`は色を消します。
+
+```bash
+export KODOUGU_THEME=catppuccin-mocha
+```
 
 <a id="how-it-works"></a>
 
@@ -163,6 +178,35 @@ kiyomeはまずディスク自体の速度を測り、その値から各転送�
 
 Linux の GNU coreutils と uutils coreutils、macOS 標準のツール、その新しい Homebrew 版、Homebrew の uutils ツールという、よく使われる 5 つのツールセットのどれでも動きます。macOS 標準のツールのうち Homebrew に新しい版があるものは、bash と zsh から openssl と perl まで、両方の版でテストします。CI はそれぞれで全テストを実行し、`kiyome doctor` は主要ツールの系統とバージョン（`gnu 9.7`、`uutils 0.12.0`、`bsd 20200816` など）を表示するので、不具合報告でどのツールが動いたかが分かります。
 
+<a id="screens"></a>
+
+## 画面
+
+<details>
+<summary><code>make screens</code> で実際の実行から録画したすべての画面</summary>
+<br>
+
+<table>
+<tr>
+<td width="50%" valign="top"><img src="screens/confirm.png" alt="kiyome: 危険ボックスの下での名前の入力"><br><sub>危険ボックスの下での名前の入力</sub></td>
+<td width="50%" valign="top"><img src="screens/result.png" alt="kiyome: 結果"><br><sub>結果</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/picker.png" alt="kiyome: ディスクの選択"><br><sub>ディスクの選択</sub></td>
+<td width="50%" valign="top"><img src="screens/error.png" alt="kiyome: エラー"><br><sub>エラー</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/doctor.png" alt="kiyome: doctor が必要なツールをすべて確認"><br><sub>doctor が必要なツールをすべて確認</sub></td>
+<td width="50%" valign="top"><img src="screens/themes.png" alt="kiyome: 6 つのテーマでのバージョン表示"><br><sub>6 つのテーマでのバージョン表示</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/help.png" alt="kiyome: ヘルプ"><br><sub>ヘルプ</sub></td>
+<td width="50%"></td>
+</tr>
+</table>
+
+</details>
+
 <a id="development"></a>
 
 ## 開発
@@ -175,6 +219,7 @@ Linux の GNU coreutils と uutils coreutils、macOS 標準のツール、その
 | `make test-all` | すべてのシェルで同じテスト。macOS では bash と zsh の両方の版を含みます |
 | `make test-linux` | Ubuntu コンテナで同じテスト |
 | `make coverage` | この Mac と Ubuntu コンテナでの bashcov の行カバレッジを合算し、CI が強制する 100% のゲート |
+| `make screens` | macOS で、README の画面を実物のツールから VHS で録画します |
 
 テストは`hdiutil`や`losetup`でファイルを使ったディスクを接続し、実際に消去します。CIはUbuntuとmacOSで実行します。`main`へのpushでCIが通るとsemantic-releaseが動き、`feat`か`fix`のコミットがあればリリースを公開し、[`lib/core.sh`](lib/core.sh)の`KIYOME_VERSION`とCHANGELOGを更新して、Homebrewのformulaも更新します。
 

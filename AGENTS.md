@@ -19,12 +19,13 @@ Guidance for anyone, human or agent, changing kiyome. What kiyome is and how to 
 ## Names
 
 - Globals carry `DISK_`; function-scoped variables carry a per-function `disk_` prefix. kakikomi uses the same names, see Domain rules.
-- Settings come from `KIYOME_<NAME>`, such as `KIYOME_PASSES` or `KIYOME_JSON`; test switches are `KIYOME_TERMINAL`, `KIYOME_TEST_SHELLS` and `KIYOME_TEST_RECORD`.
-- Output goes through `disk_info`, `disk_say`, `disk_error` and `disk_warning`.
+- Settings come from `KIYOME_<NAME>`, such as `KIYOME_PASSES`, `KIYOME_JSON` or `KIYOME_THEME`; test switches are `KIYOME_TEST_SHELLS`, `KIYOME_TEST_RECORD` and `KIYOME_TEST_GUM`.
+- Output goes through `disk_info`, `disk_say`, `disk_error` and `disk_warning`, which hand over to the `disk_ui_` helpers in [`lib/ui.sh`](lib/ui.sh) where gum draws. Disk listing, picking and progress live in [`lib/disk.sh`](lib/disk.sh).
 
 ## Behaviour
 
 - kiyome has one job, so a bare `kiyome` on a terminal asks for the disk and the number of passes directly.
+- Where gum draws, the disk is picked from a list, the typed name is asked under a danger box, and the wipe progress is a bar.
 - `--json` reports the disk, its size in bytes, the number of passes, whether every pattern read back as written, and whether `--create` left a filesystem behind.
 
 ## Domain rules
@@ -37,6 +38,7 @@ Guidance for anyone, human or agent, changing kiyome. What kiyome is and how to 
 ## Release
 
 - `KIYOME_VERSION` lives in [`lib/core.sh`](lib/core.sh).
+- The tap's `Formula/kiyome.rb` depends on `gum`.
 
 ## Gaps against FAMILY.md
 

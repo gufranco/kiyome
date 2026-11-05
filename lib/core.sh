@@ -6,57 +6,30 @@
 KIYOME_VERSION="2.1.1"
 
 disk_version() {
-  printf '%s %s\n' "$1" "${KIYOME_VERSION}"
-}
-
-disk_wrap() {
-  awk -v width="${DISK_WIDTH}" -v indent="$1" '
-    function pad(n,   s) {
-      s = ""
-      while (n-- > 0) { s = s " " }
-      return s
-    }
-    length($0) <= width { print; next }
-    {
-      match($0, /^ */)
-      n = split($0, word, " ")
-      out = substr($0, 1, RLENGTH) word[1]
-      for (i = 2; i <= n; i++) {
-        if (length(out) + 1 + length(word[i]) > width) {
-          print out
-          out = pad(indent) word[i]
-        } else {
-          out = out " " word[i]
-        }
-      }
-      print out
-    }'
-}
-
-disk_terminal() {
-  [ "${KIYOME_TERMINAL:-}" = 1 ] || [ -t 1 ]
+  printf '%s %s\n' "${1:-${DISK_PROG}}" "${KIYOME_VERSION}"
 }
 
 disk_say() {
-  disk_sy_text="$2"
-  if [ "${#disk_sy_text}" -le "${DISK_WIDTH}" ] || ! disk_terminal; then
-    printf '%s\n' "${disk_sy_text}"
-    return 0
-  fi
-  printf '%s\n' "${disk_sy_text}" | disk_wrap "$1"
+  printf '%s\n' "$1"
 }
 
 disk_log() {
-  disk_say 0 "$1$2"
+  disk_say "$1$2"
 }
 
 disk_info() {
+  disk_progress_close
   [ "${KIYOME_JSON:-n}" != y ] || return 0
-  disk_say 8 "$*"
+  disk_say "$*"
 }
 
 disk_success() {
+  disk_progress_close
   [ "${KIYOME_JSON:-n}" != y ] || return 0
+  if disk_ui_out; then
+    disk_ui_done "$*"
+    return 0
+  fi
   disk_log "" "$*"
 }
 
@@ -79,10 +52,20 @@ disk_json_string() {
 }
 
 disk_warning() {
+  disk_progress_close
+  if disk_ui_err; then
+    disk_ui_log WARN "$*"
+    return 0
+  fi
   disk_log "${DISK_PROG}: warning: " "$*" >&2
 }
 
 disk_error() {
+  disk_progress_close
+  if disk_ui_err; then
+    disk_ui_log ERROR "$*"
+    return 0
+  fi
   disk_log "${DISK_PROG}: " "$*" >&2
 }
 

@@ -11,7 +11,7 @@ fi
 
 unprefixed=$(cat "${root}"/bin/kiyome "${root}"/lib/*.sh |
   grep -oE '[$][{]?[A-Z][A-Z0-9_]*' | sed 's/^[$][{]*//' | sort -u |
-  grep -vE '^(DISK|KIYOME)_' | grep -vxE 'HOME|PATH|TMPDIR|NF|ZSH_VERSION' || true)
+  grep -vE '^(DISK|KIYOME)_' | grep -vxE 'HOME|PATH|TMPDIR|NF|ZSH_VERSION|KODOUGU_THEME|KODOUGU_ACCENT|NO_COLOR' || true)
 if [ -n "${unprefixed}" ]; then
   printf 'environment variable without the KIYOME_ prefix:\n%s\n' "${unprefixed}" >&2
   exit 1

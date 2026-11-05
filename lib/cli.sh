@@ -4,17 +4,45 @@
 . "${DISK_LIB:?}/state.sh"
 
 disk_cli_hint() {
-  disk_say 0 "${DISK_PROG}: $1. run '${DISK_PROG} help' for usage." >&2
+  disk_error "$1. run '${DISK_PROG} help' for usage."
 }
 
 disk_cli_version() {
-  disk_version "${DISK_PROG}"
   disk_cv_platform="$(uname -sr)" || disk_cv_platform="unknown"
+  if disk_ui_out; then
+    disk_cv_text="$(disk_version "${DISK_PROG}")"
+    disk_cv_badge="$(disk_ui_badge "${DISK_UI_ACCENT}" "${disk_cv_text}")"
+    disk_cv_chip="$(disk_ui_chip "platform ${disk_cv_platform}")"
+    disk_gum join --horizontal "${disk_cv_badge}" " " "${disk_cv_chip}"
+    return 0
+  fi
+  disk_version "${DISK_PROG}"
   printf 'platform: %s\n' "${disk_cv_platform}"
 }
 
 disk_doctor_row() {
+  if disk_ui_out; then
+    case "$2" in
+    ok) disk_dw_state="@ok:ok" ;;
+    *) disk_dw_state="@bad:$2" ;;
+    esac
+    DISK_DOCTOR_ROWS="${DISK_DOCTOR_ROWS}$1	${disk_dw_state}	$3
+"
+    return 0
+  fi
   printf '%-18s %-8s %s\n' "$1" "$2" "$3"
+}
+
+disk_doctor_report() {
+  if ! disk_ui_out; then
+    return 0
+  fi
+  printf 'Tool\tState\tDetail\n%s' "${DISK_DOCTOR_ROWS}" | disk_ui_table
+  if [ "$1" -ne 0 ]; then
+    disk_ui_log ERROR "a required tool is missing. install it and run kiyome doctor again."
+    return 0
+  fi
+  disk_ui_done "Ready. Every tool kiyome needs is here."
 }
 
 disk_flavor_version() {
@@ -130,8 +158,10 @@ disk_doctor_core() {
 
 disk_doctor() {
   disk_dr_status=0
+  disk_doctor_tool gum "install with: brew install gum, or see https://github.com/charmbracelet/gum" || disk_dr_status=1
   disk_doctor_core || disk_dr_status=1
   disk_doctor_tool openssl "builds the per-chunk unique pattern" || disk_dr_status=1
+  disk_doctor_report "${disk_dr_status}"
   return "${disk_dr_status}"
 }
 
@@ -141,6 +171,11 @@ disk_cli_interactive() {
 }
 
 disk_prompt() {
+  if disk_ui_prompts; then
+    disk_pd_answer="$(disk_ui_input "$1" "${2:-$1}")" || return 1
+    printf '%s\n' "${disk_pd_answer:-$2}"
+    return 0
+  fi
   if [ -n "$2" ]; then
     printf '%s [%s]: ' "$1" "$2" >&2
   else
