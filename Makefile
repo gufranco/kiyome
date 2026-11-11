@@ -26,6 +26,8 @@ lint:
 	shellcheck -x -o all test/*.sh test/*.bash test/*.bats test/shim/sudo
 	shellcheck -s bash -o all completions/kiyome.bash
 	mandoc -T lint man/kiyome.1
+	yamllint -s -c .yamllint.yml .github .yamllint.yml
+	actionlint
 
 test:
 	KIYOME_TEST_SHELLS=sh sh test/run-matrix.sh test
