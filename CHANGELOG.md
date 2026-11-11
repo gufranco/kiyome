@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.2.1](https://github.com/gufranco/kiyome/compare/v2.2.0...v2.2.1) (2026-11-11)
+
+
+### Bug Fixes
+
+* list stat in doctor ([629c490](https://github.com/gufranco/kiyome/commit/629c490c931946365ca3fd8656f0f8b4d55e4d2f))
+* read file sizes past 4 GiB under BusyBox ([8e7c05e](https://github.com/gufranco/kiyome/commit/8e7c05e3a383b6dff5d2bbb5aaebd42b03656c64))
+* size a file whose name starts with a dash ([7566bbe](https://github.com/gufranco/kiyome/commit/7566bbe169d44dacbb61a1cdca8c701d28c803d6))
+
 # [2.2.0](https://github.com/gufranco/kiyome/compare/v2.1.1...v2.2.0) (2026-11-05)
 
 
