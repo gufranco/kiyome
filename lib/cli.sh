@@ -93,7 +93,7 @@ disk_tool_flavor() {
 
 disk_doctor_note() {
   case "${1##*/}" in
-  dd | cmp | od | awk | sed | sha256sum) disk_tool_flavor "$1" ;;
+  dd | cmp | od | awk | sed | stat | sha256sum) disk_tool_flavor "$1" ;;
   shasum)
     disk_dn_raw="$("$1" --version 2>&1 </dev/null)" || true
     disk_dn_version="$(disk_flavor_version "${disk_dn_raw}")"
@@ -148,7 +148,7 @@ disk_doctor_platform() {
 
 disk_doctor_core() {
   disk_dc_status=0
-  for disk_dc_tool in dd cmp od awk sed sudo; do
+  for disk_dc_tool in dd cmp od awk sed stat sudo; do
     disk_doctor_tool "${disk_dc_tool}" "required" || disk_dc_status=1
   done
   disk_doctor_either sha256sum shasum "validates the written disk" || disk_dc_status=1
