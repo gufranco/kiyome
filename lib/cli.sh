@@ -172,15 +172,11 @@ disk_cli_interactive() {
 
 disk_prompt() {
   if disk_ui_prompts; then
-    disk_pd_answer="$(disk_ui_input "$1" "${2:-$1}")" || return 1
+    disk_pd_answer="$(disk_ui_input "$1" "$2")" || return 1
     printf '%s\n' "${disk_pd_answer:-$2}"
     return 0
   fi
-  if [ -n "$2" ]; then
-    printf '%s [%s]: ' "$1" "$2" >&2
-  else
-    printf '%s: ' "$1" >&2
-  fi
+  printf '%s [%s]: ' "$1" "$2" >&2
   disk_ak_answer=""
   IFS= read -r disk_ak_answer || [ -n "${disk_ak_answer}" ] || return 1
   printf '%s\n' "${disk_ak_answer:-$2}"
