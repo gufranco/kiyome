@@ -194,8 +194,7 @@ disk_file_size() {
     printf '0\n'
     return 0
   fi
-  disk_fs_bytes="$(wc -c <"$1")"
-  disk_fs_bytes="$(printf '%s' "${disk_fs_bytes}" | tr -d '[:space:]')"
+  disk_fs_bytes="$(stat -c %s "$1" 2>/dev/null || stat -f %z "$1")"
   disk_is_uint "${disk_fs_bytes}" || disk_fs_bytes=0
   printf '%s\n' "${disk_fs_bytes}"
 }
